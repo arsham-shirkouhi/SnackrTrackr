@@ -65,7 +65,7 @@ A comprehensive nutrition tracking web application that helps users monitor thei
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/snackrtrackr.git
+   git clone https://github.com/arsham-shirkouhi/snackrtrackr.git
    cd snackrtrackr
    ```
 
@@ -265,8 +265,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@snackrtrackr.com or create an issue in the GitHub repository.
+For support, email arsham.alishirkouhi@sjsu.edu or william.vu@sjsu.edu or create an issue in the GitHub repository.
 
 ---
 
-Made with ❤️ by the SnackrTrackr team
+Made with ❤️ by the team at D.C Corp
