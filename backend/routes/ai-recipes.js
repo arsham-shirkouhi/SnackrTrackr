@@ -122,6 +122,7 @@ router.post('/generate', async (req, res) => {
             recipe.id = Date.now().toString();
             recipe.generatedAt = new Date().toISOString();
             recipe.isAI = true;
+            recipe.isFavorite = false;
 
             res.json(recipe);
 
@@ -137,6 +138,7 @@ router.post('/generate', async (req, res) => {
                     recipe.id = Date.now().toString();
                     recipe.generatedAt = new Date().toISOString();
                     recipe.isAI = true;
+                    recipe.isFavorite = false;
                     res.json(recipe);
                 } catch (fallbackError) {
                     throw new Error('Failed to parse AI response');
