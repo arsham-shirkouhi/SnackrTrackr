@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Daily tracking data - users can read/write their own tracking data
+    match /dailyTracking/{documentId} {
+      allow read, write: if isAuthenticated() && (
+        resource == null || 
+        resource.data.userId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid
+      );
+    }
+    
+    // Food logs - users can read/write their own food logs
+    match /foodLogs/{foodLogId} {
+      allow read, write: if isAuthenticated() && (
+        resource == null || 
+        resource.data.userId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid
+      );
+    }
+    
+    // User tracking defaults - users can read/write their own defaults
+    match /userTrackingDefaults/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // User preferences - users can read/write their own preferences
+    match /userPreferences/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

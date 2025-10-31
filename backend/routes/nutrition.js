@@ -59,6 +59,15 @@ router.get('/search', async (req, res) => {
             return res.status(400).json({ error: 'Query parameter is required' });
         }
 
+        // Check if API keys are configured
+        if (!EDAMAM_APP_ID || !EDAMAM_APP_KEY || EDAMAM_APP_ID === 'your_edamam_app_id' || EDAMAM_APP_KEY === 'your_edamam_app_key') {
+            console.error('Edamam API keys are not configured');
+            return res.status(500).json({
+                error: 'Edamam API keys not configured',
+                message: 'Please add EDAMAM_APP_ID and EDAMAM_APP_KEY to your backend/.env file'
+            });
+        }
+
         const response = await axios.get(`${EDAMAM_BASE_URL}/parser`, {
             params: {
                 app_id: EDAMAM_APP_ID,
@@ -67,6 +76,10 @@ router.get('/search', async (req, res) => {
                 limit: parseInt(limit)
             }
         });
+
+        if (!response.data || !response.data.hints) {
+            return res.json({ foods: [] });
+        }
 
         const foods = response.data.hints.map(hint => ({
             id: hint.food.foodId,
@@ -85,6 +98,15 @@ router.get('/search', async (req, res) => {
 
     } catch (error) {
         console.error('Food search error:', error.message);
+
+        // Handle specific API errors
+        if (error.response) {
+            return res.status(error.response.status).json({
+                error: 'Edamam API error',
+                message: error.response.data?.message || error.message
+            });
+        }
+
         res.status(500).json({
             error: 'Failed to search foods',
             message: error.message

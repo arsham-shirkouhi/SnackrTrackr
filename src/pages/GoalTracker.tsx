@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext'
 import {
     Target,
     TrendingUp,
-    Calendar,
     Award,
     Flame,
     Zap,
@@ -12,8 +11,7 @@ import {
     Edit3,
     CheckCircle,
     AlertCircle,
-    Trophy,
-    BarChart3
+    Trophy
 } from 'lucide-react'
 import {
     LineChart,
@@ -24,9 +22,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar
+    ResponsiveContainer
 } from 'recharts'
 
 interface Goal {
@@ -48,7 +44,7 @@ interface WeeklyProgress {
 }
 
 export const GoalTracker: React.FC = () => {
-    const { userProfile, updateProfile } = useAuth()
+    const { user, userProfile, todayTrackingData, getTrackingDataRange } = useAuth()
     const [goals, setGoals] = useState<Goal[]>([])
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([])
     const [isEditingGoals, setIsEditingGoals] = useState(false)
@@ -59,51 +55,160 @@ export const GoalTracker: React.FC = () => {
         endDate: ''
     })
 
-    // Mock data
+    // Fetch goals and progress from Firebase
     useEffect(() => {
-        const mockGoals: Goal[] = [
-            {
-                id: '1',
-                type: 'calories',
-                target: userProfile?.goals.dailyCalories || 2000,
-                current: 1850,
-                unit: 'kcal',
-                startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                isActive: true
-            },
-            {
-                id: '2',
-                type: 'protein',
-                target: userProfile?.goals.protein || 150,
-                current: 120,
-                unit: 'g',
-                startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                isActive: true
-            },
-            {
-                id: '3',
-                type: 'weight',
-                target: 70,
-                current: 72,
-                unit: 'kg',
-                startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-                endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-                isActive: true
+        const fetchGoalData = async () => {
+            if (!user || !userProfile) {
+                return
             }
-        ]
 
-        const mockWeeklyProgress: WeeklyProgress[] = [
-            { week: 'Week 1', calories: 1850, protein: 120, weight: 73 },
-            { week: 'Week 2', calories: 1950, protein: 130, weight: 72.5 },
-            { week: 'Week 3', calories: 2000, protein: 140, weight: 72 },
-            { week: 'Week 4', calories: 2100, protein: 145, weight: 71.5 },
-        ]
+            try {
+                // Create goals from userProfile
+                const userGoals: Goal[] = []
 
-        setGoals(mockGoals)
-        setWeeklyProgress(mockWeeklyProgress)
-    }, [userProfile])
+                if (userProfile.goals.dailyCalories > 0) {
+                    const todayCalories = todayTrackingData?.caloriesConsumed || 0
+                    userGoals.push({
+                        id: 'calories-goal',
+                        type: 'calories',
+                        target: userProfile.goals.dailyCalories,
+                        current: todayCalories,
+                        unit: 'kcal',
+                        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        isActive: true
+                    })
+                }
+
+                if (userProfile.goals.protein > 0) {
+                    const todayProtein = todayTrackingData?.proteinConsumed || 0
+                    userGoals.push({
+                        id: 'protein-goal',
+                        type: 'protein',
+                        target: userProfile.goals.protein,
+                        current: todayProtein,
+                        unit: 'g',
+                        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        isActive: true
+                    })
+                }
+
+                if (userProfile.goals.carbs > 0) {
+                    const todayCarbs = todayTrackingData?.carbsConsumed || 0
+                    userGoals.push({
+                        id: 'carbs-goal',
+                        type: 'carbs',
+                        target: userProfile.goals.carbs,
+                        current: todayCarbs,
+                        unit: 'g',
+                        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        isActive: true
+                    })
+                }
+
+                if (userProfile.goals.fat > 0) {
+                    const todayFat = todayTrackingData?.fatConsumed || 0
+                    userGoals.push({
+                        id: 'fat-goal',
+                        type: 'fat',
+                        target: userProfile.goals.fat,
+                        current: todayFat,
+                        unit: 'g',
+                        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        isActive: true
+                    })
+                }
+
+                if (userProfile.weight > 0) {
+                    const currentWeight = todayTrackingData?.weight || userProfile.weight
+                    userGoals.push({
+                        id: 'weight-goal',
+                        type: 'weight',
+                        target: userProfile.weight,
+                        current: currentWeight,
+                        unit: 'kg',
+                        startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+                        endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+                        isActive: true
+                    })
+                }
+
+                setGoals(userGoals)
+
+                // Fetch last 4 weeks of data for weekly progress
+                const today = new Date()
+                const fourWeeksAgo = new Date(today)
+                fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28) // 4 weeks ago
+                const startDate = fourWeeksAgo.toISOString().split('T')[0]
+                const endDate = today.toISOString().split('T')[0]
+
+                const trackingData = await getTrackingDataRange(startDate, endDate)
+
+                // Group data by week
+                const weeklyDataMap: { [week: string]: { calories: number[], protein: number[], weight: number[] } } = {}
+
+                trackingData.forEach(tracking => {
+                    const trackingDate = new Date(tracking.date)
+                    const weekStart = new Date(trackingDate)
+                    weekStart.setDate(trackingDate.getDate() - trackingDate.getDay()) // Start of week (Sunday)
+                    const weekKey = `Week ${weekStart.toISOString().split('T')[0]}`
+
+                    if (!weeklyDataMap[weekKey]) {
+                        weeklyDataMap[weekKey] = { calories: [], protein: [], weight: [] }
+                    }
+
+                    weeklyDataMap[weekKey].calories.push(tracking.caloriesConsumed || 0)
+                    weeklyDataMap[weekKey].protein.push(tracking.proteinConsumed || 0)
+                    if (tracking.weight > 0) {
+                        weeklyDataMap[weekKey].weight.push(tracking.weight)
+                    }
+                })
+
+                // Calculate averages for each week
+                const weeklyProgressData: WeeklyProgress[] = Object.keys(weeklyDataMap)
+                    .sort()
+                    .slice(-4) // Last 4 weeks
+                    .map((weekKey, index) => {
+                        const weekData = weeklyDataMap[weekKey]
+                        const avgCalories = weekData.calories.length > 0
+                            ? weekData.calories.reduce((sum, val) => sum + val, 0) / weekData.calories.length
+                            : 0
+                        const avgProtein = weekData.protein.length > 0
+                            ? weekData.protein.reduce((sum, val) => sum + val, 0) / weekData.protein.length
+                            : 0
+                        const avgWeight = weekData.weight.length > 0
+                            ? weekData.weight.reduce((sum, val) => sum + val, 0) / weekData.weight.length
+                            : userProfile.weight
+
+                        return {
+                            week: `Week ${index + 1}`,
+                            calories: Math.round(avgCalories),
+                            protein: Math.round(avgProtein),
+                            weight: avgWeight
+                        }
+                    })
+
+                // If we don't have 4 weeks of data, pad with zeros
+                while (weeklyProgressData.length < 4) {
+                    weeklyProgressData.unshift({
+                        week: `Week ${4 - weeklyProgressData.length}`,
+                        calories: 0,
+                        protein: 0,
+                        weight: userProfile.weight || 0
+                    })
+                }
+
+                setWeeklyProgress(weeklyProgressData.slice(0, 4))
+            } catch (error) {
+                console.error('Error fetching goal data:', error)
+            }
+        }
+
+        fetchGoalData()
+    }, [user, userProfile, todayTrackingData, getTrackingDataRange])
 
     const getGoalIcon = (type: Goal['type']) => {
         switch (type) {
@@ -268,7 +373,7 @@ export const GoalTracker: React.FC = () => {
                                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                         <div
                                             className={`h-2 rounded-full transition-all duration-300 ${status === 'excellent' ? 'bg-green-500' :
-                                                    status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
+                                                status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
                                                 }`}
                                             style={{ width: `${Math.min(progress, 100)}%` }}
                                         />

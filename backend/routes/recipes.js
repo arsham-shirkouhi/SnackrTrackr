@@ -29,6 +29,15 @@ router.get('/search', async (req, res) => {
             return res.status(400).json({ error: 'Query parameter is required' });
         }
 
+        // Check if API keys are configured
+        if (!SPOONACULAR_API_KEY || SPOONACULAR_API_KEY === 'your_spoonacular_api_key') {
+            console.error('Spoonacular API key is not configured');
+            return res.status(500).json({
+                error: 'Spoonacular API key not configured',
+                message: 'Please add SPOONACULAR_API_KEY to your backend/.env file'
+            });
+        }
+
         // Build search parameters
         const params = {
             query,

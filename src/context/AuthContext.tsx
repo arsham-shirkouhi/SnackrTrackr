@@ -58,7 +58,7 @@ interface AuthContextType {
     // User preferences methods
     updateUserPreferences: (updates: Partial<UserPreferences>) => Promise<void>
     // Food logging methods
-    logFoodItem: (foodName: string, calories: number, protein: number, carbs: number, fat: number, servingSize: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack') => Promise<string>
+    logFoodItem: (foodName: string, calories: number, protein: number, carbs: number, fat: number, servingSize: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack', date?: string) => Promise<string>
     getFoodLogsByDate: (date: string) => Promise<FoodLogEntry[]>
     getFoodLogsByDateRange: (startDate: string, endDate: string) => Promise<FoodLogEntry[]>
     getAllUserFoodLogs: () => Promise<FoodLogEntry[]>
@@ -479,7 +479,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         carbs: number,
         fat: number,
         servingSize: string,
-        mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+        mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+        date?: string // Optional date in YYYY-MM-DD format
     ) => {
         if (!user) return ''
 
@@ -492,11 +493,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 carbs,
                 fat,
                 servingSize,
-                mealType
+                mealType,
+                date
             )
-            // Refresh today's data
-            const todayData = await userTrackingService.getTodayTrackingData(user.uid)
-            setTodayTrackingData(todayData)
+            // Refresh today's data if logging for today
+            const targetDate = date || new Date().toISOString().split('T')[0]
+            const today = new Date().toISOString().split('T')[0]
+            if (targetDate === today) {
+                const todayData = await userTrackingService.getTodayTrackingData(user.uid)
+                setTodayTrackingData(todayData)
+            }
             return foodLogId
         } catch (error) {
             throw error

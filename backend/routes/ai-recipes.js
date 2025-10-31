@@ -2,14 +2,38 @@ const express = require('express');
 const OpenAI = require('openai');
 const router = express.Router();
 
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI only if API key is provided (optional feature)
+let openai = null;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+if (OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openai_api_key' && OPENAI_API_KEY.trim() !== '') {
+    try {
+        openai = new OpenAI({
+            apiKey: OPENAI_API_KEY,
+        });
+        console.log('✅ OpenAI initialized successfully');
+    } catch (error) {
+        console.warn('⚠️  OpenAI initialization failed:', error.message);
+    }
+} else {
+    console.warn('⚠️  OpenAI API key not provided - AI recipe features will be disabled');
+}
+
+// Helper function to check if OpenAI is available
+function isOpenAIAvailable() {
+    return openai !== null;
+}
 
 // Generate AI recipe
 router.post('/generate', async (req, res) => {
     try {
+        if (!isOpenAIAvailable()) {
+            return res.status(503).json({
+                error: 'OpenAI API not configured',
+                message: 'Please add OPENAI_API_KEY to your backend/.env file to use AI recipe generation'
+            });
+        }
+
         const {
             ingredients,
             dietaryPreferences,
@@ -134,6 +158,13 @@ router.post('/generate', async (req, res) => {
 // Get recipe suggestions based on user preferences
 router.post('/suggest', async (req, res) => {
     try {
+        if (!isOpenAIAvailable()) {
+            return res.status(503).json({
+                error: 'OpenAI API not configured',
+                message: 'Please add OPENAI_API_KEY to your backend/.env file to use AI recipe suggestions'
+            });
+        }
+
         const {
             userProfile,
             recentMeals,
@@ -217,6 +248,13 @@ router.post('/suggest', async (req, res) => {
 // Analyze nutrition and provide recommendations
 router.post('/analyze', async (req, res) => {
     try {
+        if (!isOpenAIAvailable()) {
+            return res.status(503).json({
+                error: 'OpenAI API not configured',
+                message: 'Please add OPENAI_API_KEY to your backend/.env file to use AI nutrition analysis'
+            });
+        }
+
         const {
             dailyLog,
             goals,

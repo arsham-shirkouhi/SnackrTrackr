@@ -66,8 +66,8 @@ export const Navbar: React.FC = () => {
                                     key={item.path}
                                     to={item.path}
                                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive(item.path)
-                                            ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
-                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -133,8 +133,8 @@ export const Navbar: React.FC = () => {
                                         to={item.path}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${isActive(item.path)
-                                                ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />

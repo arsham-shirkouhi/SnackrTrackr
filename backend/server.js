@@ -10,8 +10,27 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
+// CORS configuration - allow multiple origins for development
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        // In development, allow all localhost origins
+        if (process.env.NODE_ENV === 'development') {
+            if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+                return callback(null, true);
+            }
+        }
+
+        // In production, check against allowed origins
+        const allowedOrigins = process.env.FRONTEND_URL
+            ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+            : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'];
+
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(morgan('combined'));

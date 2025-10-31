@@ -252,18 +252,22 @@ class UserTrackingService {
     async getTrackingDataRange(userId: string, startDate: string, endDate: string): Promise<DailyTrackingData[]> {
         try {
             const trackingCollection = collection(db, 'dailyTracking')
+            // Use only userId filter to avoid composite index requirement
+            // Filter by date range in memory instead
             const q = query(
                 trackingCollection,
-                where('userId', '==', userId),
-                where('date', '>=', startDate),
-                where('date', '<=', endDate)
+                where('userId', '==', userId)
             )
 
             const querySnapshot = await getDocs(q)
             const trackingData: DailyTrackingData[] = []
 
             querySnapshot.forEach((doc) => {
-                trackingData.push(doc.data() as DailyTrackingData)
+                const data = doc.data() as DailyTrackingData
+                // Filter by date range in memory
+                if (data.date >= startDate && data.date <= endDate) {
+                    trackingData.push(data)
+                }
             })
 
             return trackingData.sort((a, b) => a.date.localeCompare(b.date))
@@ -482,16 +486,17 @@ class UserTrackingService {
         carbs: number,
         fat: number,
         servingSize: string,
-        mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+        mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+        date?: string // Optional date in YYYY-MM-DD format, defaults to today
     ): Promise<string> {
         try {
-            const today = this.getTodayDateString()
+            const targetDate = date || this.getTodayDateString()
             const now = Timestamp.now()
 
             // Create food log entry
             const foodLogEntry: Omit<FoodLogEntry, 'id'> = {
                 userId,
-                date: today,
+                date: targetDate,
                 foodName,
                 calories,
                 protein,
@@ -507,23 +512,72 @@ class UserTrackingService {
             const foodLogsRef = collection(db, 'foodLogs')
             const docRef = await addDoc(foodLogsRef, foodLogEntry)
 
-            // Update daily tracking data
-            const todayData = await this.getTodayTrackingData(userId)
+            // Update daily tracking data for the target date
+            const dateData = await this.getTrackingDataByDate(userId, targetDate)
             const updates = {
-                caloriesConsumed: (todayData?.caloriesConsumed || 0) + calories,
-                proteinConsumed: (todayData?.proteinConsumed || 0) + protein,
-                carbsConsumed: (todayData?.carbsConsumed || 0) + carbs,
-                fatConsumed: (todayData?.fatConsumed || 0) + fat,
+                caloriesConsumed: (dateData?.caloriesConsumed || 0) + calories,
+                proteinConsumed: (dateData?.proteinConsumed || 0) + protein,
+                carbsConsumed: (dateData?.carbsConsumed || 0) + carbs,
+                fatConsumed: (dateData?.fatConsumed || 0) + fat,
                 mealsLogged: mealType === 'snack' ?
-                    (todayData?.snacksLogged || 0) + 1 :
-                    (todayData?.mealsLogged || 0) + 1
+                    (dateData?.snacksLogged || 0) + 1 :
+                    (dateData?.mealsLogged || 0) + 1
             }
 
-            await this.updateTodayTrackingData(userId, updates)
-            console.log('Food item logged for user:', userId, 'food:', foodName)
+            // Update or create tracking data for the target date
+            await this.updateTrackingDataByDate(userId, targetDate, updates)
+            console.log('Food item logged for user:', userId, 'food:', foodName, 'date:', targetDate)
             return docRef.id
         } catch (error) {
             console.error('Error logging food item:', error)
+            throw error
+        }
+    }
+
+    // Helper method to update tracking data by date (uses same document ID format as getTrackingDataByDate)
+    private async updateTrackingDataByDate(userId: string, date: string, updates: Partial<DailyTrackingData>): Promise<void> {
+        try {
+            const trackingRef = doc(db, 'dailyTracking', `${userId}_${date}`)
+            const trackingDoc = await getDoc(trackingRef)
+
+            const now = Timestamp.now()
+
+            if (trackingDoc.exists()) {
+                // Update existing document
+                const existingData = trackingDoc.data() as DailyTrackingData
+                await updateDoc(trackingRef, {
+                    caloriesConsumed: updates.caloriesConsumed ?? existingData.caloriesConsumed,
+                    proteinConsumed: updates.proteinConsumed ?? existingData.proteinConsumed,
+                    carbsConsumed: updates.carbsConsumed ?? existingData.carbsConsumed,
+                    fatConsumed: updates.fatConsumed ?? existingData.fatConsumed,
+                    mealsLogged: updates.mealsLogged ?? existingData.mealsLogged,
+                    snacksLogged: updates.snacksLogged ?? existingData.snacksLogged,
+                    updatedAt: now
+                })
+            } else {
+                // Create new document with all defaults
+                const trackingData: Omit<DailyTrackingData, 'id'> = {
+                    userId,
+                    date,
+                    caloriesConsumed: updates.caloriesConsumed ?? 0,
+                    caloriesBurned: updates.caloriesBurned ?? 0,
+                    proteinConsumed: updates.proteinConsumed ?? 0,
+                    carbsConsumed: updates.carbsConsumed ?? 0,
+                    fatConsumed: updates.fatConsumed ?? 0,
+                    waterIntake: updates.waterIntake ?? 0,
+                    weight: updates.weight ?? 0,
+                    mood: updates.mood ?? 0,
+                    sleepHours: updates.sleepHours ?? 0,
+                    exerciseMinutes: updates.exerciseMinutes ?? 0,
+                    mealsLogged: updates.mealsLogged ?? 0,
+                    snacksLogged: updates.snacksLogged ?? 0,
+                    createdAt: now,
+                    updatedAt: now
+                }
+                await setDoc(trackingRef, trackingData)
+            }
+        } catch (error) {
+            console.error('Error updating tracking data by date:', error)
             throw error
         }
     }
@@ -534,8 +588,7 @@ class UserTrackingService {
             const q = query(
                 foodLogsRef,
                 where('userId', '==', userId),
-                where('date', '==', date),
-                orderBy('timestamp', 'desc')
+                where('date', '==', date)
             )
 
             const querySnapshot = await getDocs(q)
@@ -546,6 +599,13 @@ class UserTrackingService {
                     id: doc.id,
                     ...doc.data()
                 } as FoodLogEntry)
+            })
+
+            // Sort by timestamp in memory (descending - most recent first)
+            foodLogs.sort((a, b) => {
+                const aTime = a.timestamp?.toMillis() || 0
+                const bTime = b.timestamp?.toMillis() || 0
+                return bTime - aTime
             })
 
             return foodLogs
@@ -562,9 +622,7 @@ class UserTrackingService {
                 foodLogsRef,
                 where('userId', '==', userId),
                 where('date', '>=', startDate),
-                where('date', '<=', endDate),
-                orderBy('date', 'desc'),
-                orderBy('timestamp', 'desc')
+                where('date', '<=', endDate)
             )
 
             const querySnapshot = await getDocs(q)
@@ -575,6 +633,15 @@ class UserTrackingService {
                     id: doc.id,
                     ...doc.data()
                 } as FoodLogEntry)
+            })
+
+            // Sort by date (descending) then timestamp (descending) in memory
+            foodLogs.sort((a, b) => {
+                const dateCompare = b.date.localeCompare(a.date)
+                if (dateCompare !== 0) return dateCompare
+                const aTime = a.timestamp?.toMillis() || 0
+                const bTime = b.timestamp?.toMillis() || 0
+                return bTime - aTime
             })
 
             return foodLogs
@@ -590,8 +657,7 @@ class UserTrackingService {
             const q = query(
                 foodLogsRef,
                 where('userId', '==', userId),
-                orderBy('date', 'desc'),
-                orderBy('timestamp', 'desc')
+                orderBy('date', 'desc')
             )
 
             const querySnapshot = await getDocs(q)
@@ -602,6 +668,15 @@ class UserTrackingService {
                     id: doc.id,
                     ...doc.data()
                 } as FoodLogEntry)
+            })
+
+            // Sort by timestamp (descending) within same date groups in memory
+            foodLogs.sort((a, b) => {
+                const dateCompare = b.date.localeCompare(a.date)
+                if (dateCompare !== 0) return dateCompare
+                const aTime = a.timestamp?.toMillis() || 0
+                const bTime = b.timestamp?.toMillis() || 0
+                return bTime - aTime
             })
 
             return foodLogs
@@ -647,20 +722,20 @@ class UserTrackingService {
     async getFoodLogsByMealType(userId: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack', date?: string): Promise<FoodLogEntry[]> {
         try {
             const foodLogsRef = collection(db, 'foodLogs')
-            let q = query(
-                foodLogsRef,
-                where('userId', '==', userId),
-                where('mealType', '==', mealType),
-                orderBy('timestamp', 'desc')
-            )
+            let q
 
             if (date) {
                 q = query(
                     foodLogsRef,
                     where('userId', '==', userId),
                     where('date', '==', date),
-                    where('mealType', '==', mealType),
-                    orderBy('timestamp', 'desc')
+                    where('mealType', '==', mealType)
+                )
+            } else {
+                q = query(
+                    foodLogsRef,
+                    where('userId', '==', userId),
+                    where('mealType', '==', mealType)
                 )
             }
 
@@ -672,6 +747,13 @@ class UserTrackingService {
                     id: doc.id,
                     ...doc.data()
                 } as FoodLogEntry)
+            })
+
+            // Sort by timestamp (descending) in memory
+            foodLogs.sort((a, b) => {
+                const aTime = a.timestamp?.toMillis() || 0
+                const bTime = b.timestamp?.toMillis() || 0
+                return bTime - aTime
             })
 
             return foodLogs
