@@ -44,23 +44,27 @@ interface WeeklyProgress {
 }
 
 export const GoalTracker: React.FC = () => {
-    const { user, userProfile, todayTrackingData, getTrackingDataRange } = useAuth()
+    const { user, userProfile, todayTrackingData, getTrackingDataRange, updateProfile } = useAuth()
     const [goals, setGoals] = useState<Goal[]>([])
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([])
     const [isEditingGoals, setIsEditingGoals] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [newGoal, setNewGoal] = useState({
         type: 'calories' as Goal['type'],
-        target: '',
-        unit: '',
-        endDate: ''
+        target: ''
     })
 
     // Fetch goals and progress from Firebase
     useEffect(() => {
         const fetchGoalData = async () => {
             if (!user || !userProfile) {
+                setIsLoading(false)
                 return
             }
+
+            setIsLoading(true)
+            setError(null)
 
             try {
                 // Create goals from userProfile
@@ -171,7 +175,7 @@ export const GoalTracker: React.FC = () => {
                 const weeklyProgressData: WeeklyProgress[] = Object.keys(weeklyDataMap)
                     .sort()
                     .slice(-4) // Last 4 weeks
-                    .map((weekKey, index) => {
+                    .map((weekKey) => {
                         const weekData = weeklyDataMap[weekKey]
                         const avgCalories = weekData.calories.length > 0
                             ? weekData.calories.reduce((sum, val) => sum + val, 0) / weekData.calories.length
@@ -184,7 +188,7 @@ export const GoalTracker: React.FC = () => {
                             : userProfile.weight
 
                         return {
-                            week: `Week ${index + 1}`,
+                            week: '', // Will be set after padding
                             calories: Math.round(avgCalories),
                             protein: Math.round(avgProtein),
                             weight: avgWeight
@@ -194,16 +198,25 @@ export const GoalTracker: React.FC = () => {
                 // If we don't have 4 weeks of data, pad with zeros
                 while (weeklyProgressData.length < 4) {
                     weeklyProgressData.unshift({
-                        week: `Week ${4 - weeklyProgressData.length}`,
+                        week: '',
                         calories: 0,
                         protein: 0,
                         weight: userProfile.weight || 0
                     })
                 }
 
-                setWeeklyProgress(weeklyProgressData.slice(0, 4))
+                // Now label all weeks sequentially
+                const finalWeeklyProgress = weeklyProgressData.slice(0, 4).map((data, index) => ({
+                    ...data,
+                    week: `Week ${index + 1}`
+                }))
+
+                setWeeklyProgress(finalWeeklyProgress)
             } catch (error) {
                 console.error('Error fetching goal data:', error)
+                setError('Failed to load goal data. Please try again later.')
+            } finally {
+                setIsLoading(false)
             }
         }
 
@@ -265,22 +278,55 @@ export const GoalTracker: React.FC = () => {
         }
     }
 
-    const addGoal = () => {
-        if (!newGoal.target || !newGoal.unit || !newGoal.endDate) return
+    const addGoal = async () => {
+        if (!newGoal.target || !userProfile) return
 
-        const goal: Goal = {
-            id: Date.now().toString(),
-            type: newGoal.type,
-            target: parseFloat(newGoal.target),
-            current: 0,
-            unit: newGoal.unit,
-            startDate: new Date(),
-            endDate: new Date(newGoal.endDate),
-            isActive: true
+        try {
+            const targetValue = parseFloat(newGoal.target)
+            const profileUpdates: any = {}
+
+            switch (newGoal.type) {
+                case 'calories':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        dailyCalories: targetValue
+                    }
+                    break
+                case 'protein':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        protein: targetValue
+                    }
+                    break
+                case 'carbs':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        carbs: targetValue
+                    }
+                    break
+                case 'fat':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        fat: targetValue
+                    }
+                    break
+                case 'weight':
+                    profileUpdates.weight = targetValue
+                    break
+                case 'workout':
+                    // Workout goals are not supported in profile yet
+                    setError('Workout goals are not yet supported. Please check back later!')
+                    return
+            }
+
+            await updateProfile(profileUpdates)
+
+            // Reset form
+            setNewGoal({ type: 'calories', target: '' })
+        } catch (error) {
+            console.error('Error adding goal:', error)
+            setError('Failed to add goal. Please try again.')
         }
-
-        setGoals([...goals, goal])
-        setNewGoal({ type: 'calories', target: '', unit: '', endDate: '' })
     }
 
     const updateGoal = (id: string, updates: Partial<Goal>) => {
@@ -289,8 +335,55 @@ export const GoalTracker: React.FC = () => {
         ))
     }
 
-    const deleteGoal = (id: string) => {
-        setGoals(goals.filter(goal => goal.id !== id))
+    const deleteGoal = async (id: string) => {
+        if (!userProfile) return
+
+        // Find the goal to delete
+        const goalToDelete = goals.find(goal => goal.id === id)
+        if (!goalToDelete) return
+
+        try {
+            // Update the user profile to set the goal to 0
+            const profileUpdates: Partial<UserProfile> = {}
+
+            switch (goalToDelete.type) {
+                case 'calories':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        dailyCalories: 0
+                    }
+                    break
+                case 'protein':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        protein: 0
+                    }
+                    break
+                case 'carbs':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        carbs: 0
+                    }
+                    break
+                case 'fat':
+                    profileUpdates.goals = {
+                        ...userProfile.goals,
+                        fat: 0
+                    }
+                    break
+                case 'weight':
+                    profileUpdates.weight = 0
+                    break
+            }
+
+            await updateProfile(profileUpdates)
+
+            // Remove from local state
+            setGoals(goals.filter(goal => goal.id !== id))
+        } catch (error) {
+            console.error('Error deleting goal:', error)
+            setError('Failed to delete goal. Please try again.')
+        }
     }
 
     const getGoalTypeLabel = (type: Goal['type']) => {
@@ -315,16 +408,41 @@ export const GoalTracker: React.FC = () => {
         }
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your summary...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                <div className="flex items-center space-x-3">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                    <div>
+                        <h3 className="text-lg font-semibold text-red-900 dark:text-red-300">Error</h3>
+                        <p className="text-red-700 dark:text-red-400">{error}</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Goal Tracker
+                        Summary
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        Set and track your nutrition and fitness goals
+                        Overview of your nutrition and fitness progress
                     </p>
                 </div>
                 <button
@@ -336,8 +454,29 @@ export const GoalTracker: React.FC = () => {
                 </button>
             </div>
 
+            {/* Empty State */}
+            {goals.length === 0 && !isEditingGoals && (
+                <div className="card text-center py-12">
+                    <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        No Goals Set Yet
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Start tracking your progress by setting up your nutrition goals in your profile settings.
+                    </p>
+                    <button
+                        onClick={() => setIsEditingGoals(true)}
+                        className="btn-primary inline-flex items-center space-x-2"
+                    >
+                        <Edit3 className="w-4 h-4" />
+                        <span>Set Up Goals</span>
+                    </button>
+                </div>
+            )}
+
             {/* Goals Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {goals.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {goals.map((goal) => {
                     const progress = getProgressPercentage(goal.current, goal.target)
                     const status = getProgressStatus(goal.current, goal.target, goal.type)
@@ -386,18 +525,12 @@ export const GoalTracker: React.FC = () => {
                                 </div>
 
                                 {isEditingGoals && (
-                                    <div className="flex space-x-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <button
-                                            onClick={() => updateGoal(goal.id, { isActive: !goal.isActive })}
-                                            className="flex-1 btn-secondary text-xs"
-                                        >
-                                            {goal.isActive ? 'Pause' : 'Resume'}
-                                        </button>
+                                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                                         <button
                                             onClick={() => deleteGoal(goal.id)}
-                                            className="flex-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-xs px-3 py-1 rounded-lg transition-colors"
+                                            className="w-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-xs px-3 py-1 rounded-lg transition-colors"
                                         >
-                                            Delete
+                                            Remove Goal
                                         </button>
                                     </div>
                                 )}
@@ -405,15 +538,19 @@ export const GoalTracker: React.FC = () => {
                         </div>
                     )
                 })}
-            </div>
+                </div>
+            )}
 
             {/* Add New Goal */}
             {isEditingGoals && (
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Add New Goal
+                        Set New Goal
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Update your nutrition and fitness goals. These goals will be saved to your profile.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Goal Type
@@ -428,56 +565,38 @@ export const GoalTracker: React.FC = () => {
                                 <option value="carbs">Daily Carbs</option>
                                 <option value="fat">Daily Fat</option>
                                 <option value="weight">Target Weight</option>
-                                <option value="workout">Weekly Workouts</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Target Value
+                                Target Value ({getGoalUnits(newGoal.type)})
                             </label>
                             <input
                                 type="number"
                                 value={newGoal.target}
                                 onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
                                 className="input-field"
-                                placeholder="Enter target value"
+                                placeholder={`Enter target ${getGoalUnits(newGoal.type)}`}
+                                min="0"
+                                step="any"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Unit
-                            </label>
-                            <input
-                                type="text"
-                                value={newGoal.unit}
-                                onChange={(e) => setNewGoal({ ...newGoal, unit: e.target.value })}
-                                className="input-field"
-                                placeholder={getGoalUnits(newGoal.type)}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Target Date
-                            </label>
-                            <input
-                                type="date"
-                                value={newGoal.endDate}
-                                onChange={(e) => setNewGoal({ ...newGoal, endDate: e.target.value })}
-                                className="input-field"
-                            />
+                        <div className="flex items-end">
+                            <button
+                                onClick={addGoal}
+                                disabled={!newGoal.target}
+                                className="btn-primary flex items-center justify-center space-x-2 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Save className="w-4 h-4" />
+                                <span>Save Goal</span>
+                            </button>
                         </div>
                     </div>
-                    <button
-                        onClick={addGoal}
-                        className="btn-primary flex items-center space-x-2 mt-4"
-                    >
-                        <Save className="w-4 h-4" />
-                        <span>Add Goal</span>
-                    </button>
                 </div>
             )}
 
             {/* Progress Charts */}
+            {goals.length > 0 && weeklyProgress.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Weekly Progress */}
                 <div className="card">
@@ -535,8 +654,10 @@ export const GoalTracker: React.FC = () => {
                     </div>
                 </div>
             </div>
+            )}
 
             {/* Achievements */}
+            {goals.length > 0 && (
             <div className="card">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Recent Achievements
@@ -583,6 +704,7 @@ export const GoalTracker: React.FC = () => {
                     </div>
                 </div>
             </div>
+            )}
         </div>
     )
 }

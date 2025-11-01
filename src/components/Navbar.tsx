@@ -38,7 +38,7 @@ export const Navbar: React.FC = () => {
         { path: '/meals', label: 'Meals', icon: Utensils },
         { path: '/recipes', label: 'Recipes', icon: BookOpen },
         { path: '/ai-recipes', label: 'AI Recipes', icon: Bot },
-        { path: '/goals', label: 'Goals', icon: Target },
+        { path: '/goals', label: 'Summary', icon: Target },
     ]
 
     const isActive = (path: string) => {
