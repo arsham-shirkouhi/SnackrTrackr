@@ -147,11 +147,25 @@ export const MealLogger: React.FC = () => {
                     `https://api.spoonacular.com/recipes/complexSearch?${searchParams.toString()}`
                 )
 
-                if (!searchResponse.ok) {
-                    throw new Error(`API responded with status ${searchResponse.status}`)
-                }
-
+                // Parse the response first
                 const searchData = await searchResponse.json()
+
+                // Check for API errors (rate limit, invalid key, etc.)
+                if (!searchResponse.ok || searchData.code === 402 || searchData.status === 'failure') {
+                    console.error('Spoonacular API error:', searchData)
+
+                    // Check for rate limit or quota errors
+                    if (searchResponse.status === 402 || searchData.code === 402) {
+                        throw new Error('API_RATE_LIMIT')
+                    }
+
+                    // Check for invalid API key
+                    if (searchResponse.status === 401 || searchData.code === 401) {
+                        throw new Error('API_INVALID_KEY')
+                    }
+
+                    throw new Error(searchData.message || `API responded with status ${searchResponse.status}`)
+                }
 
                 if (!searchData || !searchData.results || searchData.results.length === 0) {
                     setRecipeResults([])
@@ -223,7 +237,18 @@ export const MealLogger: React.FC = () => {
                 setRecipeResults(recipesWithNutrition)
             } catch (error: any) {
                 console.error('Error searching recipes:', error)
-                setSearchError('Failed to search recipes. Please try again.')
+
+                // Provide specific error messages
+                if (error.message === 'API_RATE_LIMIT') {
+                    setSearchError('API rate limit exceeded. You\'ve reached the maximum number of free API requests. Please try again tomorrow or upgrade your Spoonacular API plan.')
+                } else if (error.message === 'API_INVALID_KEY') {
+                    setSearchError('Invalid API key. Please check your Spoonacular API configuration.')
+                } else if (error.message?.includes('Failed to fetch') || error.name === 'TypeError') {
+                    setSearchError('Network error. Please check your internet connection.')
+                } else {
+                    setSearchError(error.message || 'Failed to search recipes. Please try again.')
+                }
+
                 setRecipeResults([])
             } finally {
                 setSearchLoading(false)
@@ -274,11 +299,11 @@ export const MealLogger: React.FC = () => {
         if (!user) return
 
         try {
-            // Calculate nutrition per serving (recipes have total nutrition for all servings)
-            const caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
-            const proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
-            const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
-            const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
+            // The nutritionWidget.json API returns per-serving nutrition already, so we don't need to divide
+            const caloriesPerServing = Math.round(recipe.nutrition.calories)
+            const proteinPerServing = Math.round(recipe.nutrition.protein)
+            const carbsPerServing = Math.round(recipe.nutrition.carbs)
+            const fatPerServing = Math.round(recipe.nutrition.fat)
 
             const servingSize = `${recipe.title} (1 serving of ${recipe.servings})`
 
@@ -635,10 +660,11 @@ export const MealLogger: React.FC = () => {
                                     ) : (
                                         <>
                                             {recipeResults.map((recipe) => {
-                                                const caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
-                                                const proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
-                                                const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
-                                                const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
+                                                // nutritionWidget.json already returns per-serving values
+                                                const caloriesPerServing = Math.round(recipe.nutrition.calories)
+                                                const proteinPerServing = Math.round(recipe.nutrition.protein)
+                                                const carbsPerServing = Math.round(recipe.nutrition.carbs)
+                                                const fatPerServing = Math.round(recipe.nutrition.fat)
 
                                                 return (
                                                     <div
