@@ -24,6 +24,24 @@ function isOpenAIAvailable() {
     return openai !== null;
 }
 
+// Helper function to sanitize AI-generated JSON
+function sanitizeJSON(jsonString) {
+    // Remove markdown code blocks if present
+    let cleaned = jsonString.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
+    // Remove trailing commas before closing brackets/braces
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+
+    // Fix unquoted numbers with fractions (e.g., amount: 1/2 -> amount: "0.5")
+    // This regex finds patterns like "amount": 1/2, and converts them
+    cleaned = cleaned.replace(/"amount":\s*(\d+)\/(\d+)/g, (match, num, denom) => {
+        const decimal = (parseFloat(num) / parseFloat(denom)).toFixed(2);
+        return `"amount": "${decimal}"`;
+    });
+
+    return cleaned.trim();
+}
+
 // Generate AI recipe
 router.post('/generate', async (req, res) => {
     try {
@@ -62,42 +80,50 @@ router.post('/generate', async (req, res) => {
             prompt += `\nCuisine style: ${cuisine}`;
         }
 
-        prompt += `\n\nPlease provide the response in the following JSON format:
+        prompt += `\n\nIMPORTANT: Respond with ONLY valid JSON. No trailing commas, no unquoted values, no markdown formatting.
+
+Provide the response in this exact JSON format:
+{
+  "title": "Recipe title",
+  "description": "Brief description of the recipe",
+  "prepTime": 15,
+  "cookTime": 20,
+  "servings": 4,
+  "difficulty": "Easy",
+  "calories": 350,
+  "protein": 25,
+  "carbs": 40,
+  "fat": 12,
+  "ingredients": [
     {
-      "title": "Recipe title",
-      "description": "Brief description of the recipe",
-      "prepTime": number in minutes,
-      "cookTime": number in minutes,
-      "servings": number,
-      "difficulty": "Easy/Medium/Hard",
-      "calories": number per serving,
-      "protein": number in grams per serving,
-      "carbs": number in grams per serving,
-      "fat": number in grams per serving,
-      "ingredients": [
-        {
-          "name": "ingredient name",
-          "amount": "quantity",
-          "unit": "unit of measurement"
-        }
-      ],
-      "instructions": [
-        "Step 1 instruction",
-        "Step 2 instruction"
-      ],
-      "tags": ["tag1", "tag2"],
-      "tips": [
-        "Helpful tip 1",
-        "Helpful tip 2"
-      ]
-    }`;
+      "name": "ingredient name",
+      "amount": "1/2",
+      "unit": "cup"
+    }
+  ],
+  "instructions": [
+    "Step 1 instruction",
+    "Step 2 instruction"
+  ],
+  "tags": ["tag1", "tag2"],
+  "tips": [
+    "Helpful tip 1",
+    "Helpful tip 2"
+  ]
+}
+
+CRITICAL:
+- All numbers must be plain integers (prepTime: 15, NOT prepTime: 15,)
+- ingredient "amount" must be a STRING in quotes (e.g., "1/2", "2", "1.5")
+- NO trailing commas in arrays or objects
+- NO markdown code blocks, just raw JSON`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
                 {
                     role: "system",
-                    content: "You are a professional chef and nutritionist. Create detailed, healthy recipes with accurate nutritional information. Always respond with valid JSON format."
+                    content: "You are a professional chef and nutritionist. Create detailed, healthy recipes with accurate nutritional information. CRITICAL: You must respond with ONLY valid, parseable JSON. No markdown, no trailing commas, all numbers as integers or quoted strings as specified. Ingredient amounts must ALWAYS be quoted strings (e.g., \"1/2\", \"2\", \"1.5\")."
                 },
                 {
                     role: "user",
@@ -111,7 +137,9 @@ router.post('/generate', async (req, res) => {
         const responseText = completion.choices[0].message.content;
 
         try {
-            const recipe = JSON.parse(responseText);
+            // Sanitize the JSON before parsing
+            const sanitizedJSON = sanitizeJSON(responseText);
+            const recipe = JSON.parse(sanitizedJSON);
 
             // Validate required fields
             if (!recipe.title || !recipe.ingredients || !recipe.instructions) {
@@ -130,18 +158,21 @@ router.post('/generate', async (req, res) => {
             console.error('Error parsing AI response:', parseError.message);
             console.error('Raw response:', responseText);
 
-            // Fallback: try to extract JSON from the response
+            // Fallback: try to extract and sanitize JSON from the response
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 try {
-                    const recipe = JSON.parse(jsonMatch[0]);
+                    const sanitizedJSON = sanitizeJSON(jsonMatch[0]);
+                    console.log('Attempting to parse sanitized JSON:', sanitizedJSON);
+                    const recipe = JSON.parse(sanitizedJSON);
                     recipe.id = Date.now().toString();
                     recipe.generatedAt = new Date().toISOString();
                     recipe.isAI = true;
                     recipe.isFavorite = false;
                     res.json(recipe);
                 } catch (fallbackError) {
-                    throw new Error('Failed to parse AI response');
+                    console.error('Fallback parsing also failed:', fallbackError.message);
+                    throw new Error('Failed to parse AI response: ' + fallbackError.message);
                 }
             } else {
                 throw new Error('No valid JSON found in AI response');

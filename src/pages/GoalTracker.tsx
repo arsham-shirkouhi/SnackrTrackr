@@ -44,7 +44,7 @@ interface WeeklyProgress {
 }
 
 export const GoalTracker: React.FC = () => {
-    const { user, userProfile, todayTrackingData, getTrackingDataRange, updateProfile } = useAuth()
+    const { user, userProfile, todayTrackingData, getTrackingDataRange, updateProfile, updateWeight } = useAuth()
     const [goals, setGoals] = useState<Goal[]>([])
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([])
     const [isEditingGoals, setIsEditingGoals] = useState(false)
@@ -54,6 +54,9 @@ export const GoalTracker: React.FC = () => {
         type: 'calories' as Goal['type'],
         target: ''
     })
+    const [isUpdatingWeight, setIsUpdatingWeight] = useState(false)
+    const [newWeight, setNewWeight] = useState('')
+    const [weightUpdateSuccess, setWeightUpdateSuccess] = useState(false)
 
     // Fetch goals and progress from Firebase
     useEffect(() => {
@@ -408,6 +411,31 @@ export const GoalTracker: React.FC = () => {
         }
     }
 
+    const handleUpdateWeight = async () => {
+        if (!newWeight || !updateWeight) return
+
+        try {
+            const weightValue = parseFloat(newWeight)
+            if (isNaN(weightValue) || weightValue <= 0) {
+                setError('Please enter a valid weight')
+                return
+            }
+
+            await updateWeight(weightValue)
+            setWeightUpdateSuccess(true)
+            setNewWeight('')
+            setIsUpdatingWeight(false)
+
+            // Clear success message after 3 seconds
+            setTimeout(() => {
+                setWeightUpdateSuccess(false)
+            }, 3000)
+        } catch (error) {
+            console.error('Error updating weight:', error)
+            setError('Failed to update weight. Please try again.')
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -631,9 +659,66 @@ export const GoalTracker: React.FC = () => {
 
                 {/* Weight Progress */}
                 <div className="card">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Weight Progress
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Weight Progress
+                        </h3>
+                        <button
+                            onClick={() => setIsUpdatingWeight(!isUpdatingWeight)}
+                            className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                        >
+                            {isUpdatingWeight ? 'Cancel' : 'Update Weight'}
+                        </button>
+                    </div>
+
+                    {/* Success Message */}
+                    {weightUpdateSuccess && (
+                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center space-x-2">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <span className="text-sm text-green-700 dark:text-green-400">
+                                Weight updated successfully!
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Update Weight Form */}
+                    {isUpdatingWeight && (
+                        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Current Weight (kg)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={newWeight}
+                                        onChange={(e) => setNewWeight(e.target.value)}
+                                        className="input-field"
+                                        placeholder="Enter your current weight"
+                                        min="0"
+                                        step="0.1"
+                                    />
+                                </div>
+                                <div className="flex items-end">
+                                    <button
+                                        onClick={handleUpdateWeight}
+                                        disabled={!newWeight}
+                                        className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        <span>Save</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                {todayTrackingData?.weight
+                                    ? `Current recorded weight: ${todayTrackingData.weight.toFixed(1)} kg`
+                                    : `Target weight: ${userProfile?.weight.toFixed(1) || 0} kg`
+                                }
+                            </p>
+                        </div>
+                    )}
+
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={weeklyProgress}>
