@@ -43,10 +43,16 @@ interface WeeklyProgress {
     weight: number
 }
 
+interface DailyCalories {
+    day: string
+    calories: number
+}
+
 export const GoalTracker: React.FC = () => {
     const { user, userProfile, todayTrackingData, getTrackingDataRange, updateProfile, updateWeight } = useAuth()
     const [goals, setGoals] = useState<Goal[]>([])
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([])
+    const [dailyCalories, setDailyCalories] = useState<DailyCalories[]>([])
     const [isEditingGoals, setIsEditingGoals] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -215,6 +221,36 @@ export const GoalTracker: React.FC = () => {
                 }))
 
                 setWeeklyProgress(finalWeeklyProgress)
+
+                // Fetch past 7 days of daily calorie data
+                const sevenDaysAgo = new Date(today)
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6) // 6 days ago + today = 7 days
+                const sevenDaysStartDate = sevenDaysAgo.toISOString().split('T')[0]
+                const sevenDaysEndDate = today.toISOString().split('T')[0]
+
+                const dailyTrackingData = await getTrackingDataRange(sevenDaysStartDate, sevenDaysEndDate)
+
+                // Create a map of date to calories
+                const dateToCaloriesMap: { [date: string]: number } = {}
+                dailyTrackingData.forEach(tracking => {
+                    dateToCaloriesMap[tracking.date] = tracking.caloriesConsumed || 0
+                })
+
+                // Create array for past 7 days with proper day labels
+                const dailyCaloriesData: DailyCalories[] = []
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today)
+                    date.setDate(date.getDate() - i)
+                    const dateStr = date.toISOString().split('T')[0]
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+
+                    dailyCaloriesData.push({
+                        day: dayName,
+                        calories: dateToCaloriesMap[dateStr] || 0
+                    })
+                }
+
+                setDailyCalories(dailyCaloriesData)
             } catch (error) {
                 console.error('Error fetching goal data:', error)
                 setError('Failed to load goal data. Please try again later.')
@@ -626,16 +662,16 @@ export const GoalTracker: React.FC = () => {
             {/* Progress Charts */}
             {goals.length > 0 && weeklyProgress.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Weekly Progress */}
+                {/* This Week's Calories */}
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Weekly Progress
+                        This Week's Calories
                     </h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={weeklyProgress}>
+                            <LineChart data={dailyCalories}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="week" />
+                                <XAxis dataKey="day" />
                                 <YAxis />
                                 <Tooltip />
                                 <Line
@@ -644,13 +680,6 @@ export const GoalTracker: React.FC = () => {
                                     stroke="#ef4444"
                                     strokeWidth={2}
                                     name="Calories"
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="protein"
-                                    stroke="#3b82f6"
-                                    strokeWidth={2}
-                                    name="Protein (g)"
                                 />
                             </LineChart>
                         </ResponsiveContainer>
