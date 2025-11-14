@@ -3,12 +3,11 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Navbar } from './components/Navbar'
-import { Footer } from './components/Footer'
 
 // Pages
 import { LoginPage } from './pages/LoginPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { Dashboard } from './pages/Dashboard'
-import { MealLogger } from './pages/MealLogger'
 import { RecipeSearch } from './pages/RecipeSearch'
 import { GoalTracker } from './pages/GoalTracker'
 import { AIRecipeGenerator } from './pages/AIRecipeGenerator'
@@ -24,35 +23,34 @@ function App() {
                         <main className="container mx-auto px-4 py-8">
                             <Routes>
                                 <Route path="/login" element={<LoginPage />} />
-                                <Route path="/" element={
+                                <Route path="/onboarding" element={
                                     <ProtectedRoute>
+                                        <OnboardingPage />
+                                    </ProtectedRoute>
+                                } />
+                                <Route path="/" element={
+                                    <ProtectedRoute requireOnboarding={true}>
                                         <Dashboard />
                                     </ProtectedRoute>
                                 } />
-                                <Route path="/meals" element={
-                                    <ProtectedRoute>
-                                        <MealLogger />
-                                    </ProtectedRoute>
-                                } />
                                 <Route path="/recipes" element={
-                                    <ProtectedRoute>
+                                    <ProtectedRoute requireOnboarding={true}>
                                         <RecipeSearch />
                                     </ProtectedRoute>
                                 } />
                                 <Route path="/ai-recipes" element={
-                                    <ProtectedRoute>
+                                    <ProtectedRoute requireOnboarding={true}>
                                         <AIRecipeGenerator />
                                     </ProtectedRoute>
                                 } />
                                 <Route path="/goals" element={
-                                    <ProtectedRoute>
+                                    <ProtectedRoute requireOnboarding={true}>
                                         <GoalTracker />
                                     </ProtectedRoute>
                                 } />
                                 <Route path="/faq" element={<FAQ />} />
                             </Routes>
                         </main>
-                        <Footer />
                     </div>
                 </Router>
             </AuthProvider>

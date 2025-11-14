@@ -30,6 +30,7 @@ interface UserProfile {
     }
     savedRecipes: string[]
     createdAt: Date
+    onboardingCompleted?: boolean // Default: false
 }
 
 interface AuthContextType {
@@ -40,7 +41,7 @@ interface AuthContextType {
     todayTrackingData: DailyTrackingData | null
     loading: boolean
     signIn: (email: string, password: string) => Promise<void>
-    signUp: (email: string, password: string, profile: Partial<UserProfile>, preferences?: Partial<UserPreferences>) => Promise<void>
+    signUp: (email: string, password: string, profile?: Partial<UserProfile>, preferences?: Partial<UserPreferences>) => Promise<void>
     logout: () => Promise<void>
     updateProfile: (profile: Partial<UserProfile>) => Promise<void>
     // Daily tracking methods
@@ -96,7 +97,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         console.log('User profile loaded:', profileData)
                         setUserProfile({
                             ...profileData,
-                            createdAt: profileData.createdAt?.toDate() || new Date()
+                            createdAt: profileData.createdAt?.toDate() || new Date(),
+                            onboardingCompleted: profileData.onboardingCompleted ?? false
                         } as UserProfile)
 
                         // Load tracking defaults, preferences, and today's data for existing user
@@ -139,7 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 fat: 0
                             },
                             savedRecipes: [],
-                            createdAt: new Date()
+                            createdAt: new Date(),
+                            onboardingCompleted: false
                         }
 
                         await setDoc(doc(db, 'users', user.uid), {
@@ -191,7 +194,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             fat: 0
                         },
                         savedRecipes: [],
-                        createdAt: new Date()
+                        createdAt: new Date(),
+                        onboardingCompleted: false
                     }
                     setUserProfile(defaultProfile)
 
@@ -240,7 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
 
-    const signUp = async (email: string, password: string, profile: Partial<UserProfile>, preferences?: Partial<UserPreferences>) => {
+    const signUp = async (email: string, password: string, profile?: Partial<UserProfile>, preferences?: Partial<UserPreferences>) => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             const user = userCredential.user
@@ -248,18 +252,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Create user profile in Firestore
             const userProfile: UserProfile = {
                 email,
-                weight: profile.weight || 0,
-                height: profile.height || 0,
-                age: profile.age || 0,
-                activityLevel: profile.activityLevel || 'moderate',
-                goals: profile.goals || {
+                weight: profile?.weight || 0,
+                height: profile?.height || 0,
+                age: profile?.age || 0,
+                activityLevel: profile?.activityLevel || 'moderate',
+                goals: profile?.goals || {
                     dailyCalories: 0,
                     protein: 0,
                     carbs: 0,
                     fat: 0
                 },
                 savedRecipes: [],
-                createdAt: new Date()
+                createdAt: new Date(),
+                onboardingCompleted: profile?.onboardingCompleted || false
             }
 
             // Create user document in Firestore

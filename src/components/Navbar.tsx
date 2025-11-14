@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import {
     Home,
-    Utensils,
     BookOpen,
     Target,
     Bot,
@@ -35,7 +34,6 @@ export const Navbar: React.FC = () => {
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: Home },
-        { path: '/meals', label: 'Meals', icon: Utensils },
         { path: '/recipes', label: 'Recipes', icon: BookOpen },
         { path: '/ai-recipes', label: 'AI Recipes', icon: Bot },
         { path: '/goals', label: 'Summary', icon: Target },
@@ -49,14 +47,6 @@ export const Navbar: React.FC = () => {
         <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
-                            <Utensils className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-xl font-bold text-gradient">SnackrTrackr</span>
-                    </Link>
-
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-1">
                         {navItems.map((item) => {

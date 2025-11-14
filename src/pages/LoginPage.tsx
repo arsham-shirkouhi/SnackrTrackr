@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import { Utensils, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 
 export const LoginPage: React.FC = () => {
@@ -12,14 +11,7 @@ export const LoginPage: React.FC = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
-    // Profile fields for signup
-    const [weight, setWeight] = useState('')
-    const [height, setHeight] = useState('')
-    const [age, setAge] = useState('')
-    const [activityLevel, setActivityLevel] = useState<'sedentary' | 'light' | 'moderate' | 'active' | 'very_active'>('moderate')
-
     const { signIn, signUp } = useAuth()
-    const { isDark } = useTheme()
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -34,17 +26,10 @@ export const LoginPage: React.FC = () => {
             if (isLogin) {
                 await signIn(email, password)
             } else {
-                if (!weight || !height || !age) {
-                    setError('Please fill in all profile fields')
-                    setLoading(false)
-                    return
-                }
-                await signUp(email, password, {
-                    weight: parseFloat(weight),
-                    height: parseFloat(height),
-                    age: parseInt(age),
-                    activityLevel
-                })
+                await signUp(email, password)
+                // Redirect to onboarding after signup
+                navigate('/onboarding', { replace: true })
+                return
             }
             navigate(from, { replace: true })
         } catch (error: any) {
@@ -54,26 +39,6 @@ export const LoginPage: React.FC = () => {
         }
     }
 
-    const calculateDailyCalories = () => {
-        if (!weight || !height || !age) return 2000
-
-        const weightNum = parseFloat(weight)
-        const heightNum = parseFloat(height)
-        const ageNum = parseInt(age)
-
-        // BMR calculation (Mifflin-St Jeor Equation)
-        const bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum + 5
-
-        const activityMultipliers = {
-            sedentary: 1.2,
-            light: 1.375,
-            moderate: 1.55,
-            active: 1.725,
-            very_active: 1.9
-        }
-
-        return Math.round(bmr * activityMultipliers[activityLevel])
-    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
@@ -149,86 +114,6 @@ export const LoginPage: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-
-                        {/* Profile fields for signup */}
-                        {!isLogin && (
-                            <>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="weight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Weight (kg)
-                                        </label>
-                                        <input
-                                            id="weight"
-                                            name="weight"
-                                            type="number"
-                                            required
-                                            value={weight}
-                                            onChange={(e) => setWeight(e.target.value)}
-                                            className="input-field"
-                                            placeholder="70"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="height" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Height (cm)
-                                        </label>
-                                        <input
-                                            id="height"
-                                            name="height"
-                                            type="number"
-                                            required
-                                            value={height}
-                                            onChange={(e) => setHeight(e.target.value)}
-                                            className="input-field"
-                                            placeholder="170"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="age" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Age
-                                    </label>
-                                    <input
-                                        id="age"
-                                        name="age"
-                                        type="number"
-                                        required
-                                        value={age}
-                                        onChange={(e) => setAge(e.target.value)}
-                                        className="input-field"
-                                        placeholder="25"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="activityLevel" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Activity Level
-                                    </label>
-                                    <select
-                                        id="activityLevel"
-                                        value={activityLevel}
-                                        onChange={(e) => setActivityLevel(e.target.value as any)}
-                                        className="input-field"
-                                    >
-                                        <option value="sedentary">Sedentary (little/no exercise)</option>
-                                        <option value="light">Light (light exercise 1-3 days/week)</option>
-                                        <option value="moderate">Moderate (moderate exercise 3-5 days/week)</option>
-                                        <option value="active">Active (hard exercise 6-7 days/week)</option>
-                                        <option value="very_active">Very Active (very hard exercise, physical job)</option>
-                                    </select>
-                                </div>
-
-                                {weight && height && age && (
-                                    <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
-                                        <p className="text-sm text-primary-700 dark:text-primary-300">
-                                            <strong>Estimated daily calories:</strong> {calculateDailyCalories()} kcal
-                                        </p>
-                                    </div>
-                                )}
-                            </>
-                        )}
 
                         <button
                             type="submit"

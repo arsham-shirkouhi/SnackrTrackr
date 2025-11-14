@@ -16,8 +16,7 @@ import {
     List,
     Users,
     Apple,
-    Zap,
-    Target
+    Zap
 } from 'lucide-react'
 import { FoodLogEntry } from '../services/userTrackingService'
 
@@ -32,11 +31,12 @@ interface DailyLog {
 
 
 export const Dashboard: React.FC = () => {
-    const { user, getFoodLogsByDate, logFoodItem, deleteFoodLogEntry } = useAuth()
+    const { user, userProfile, getFoodLogsByDate, logFoodItem, deleteFoodLogEntry } = useAuth()
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
     const [selectedDateLog, setSelectedDateLog] = useState<DailyLog | null>(null)
     const [loading, setLoading] = useState(true)
     const [selectedDateMeals, setSelectedDateMeals] = useState<FoodLogEntry[]>([])
+    const [weekCalories, setWeekCalories] = useState<{ [date: string]: number }>({})
     const [editingMeal, setEditingMeal] = useState<string | null>(null)
     const [isAddingMeal, setIsAddingMeal] = useState(false)
 
@@ -236,6 +236,37 @@ export const Dashboard: React.FC = () => {
         fetchSelectedDateData()
     }, [user, selectedDate, getFoodLogsByDate])
 
+    // Fetch calories for all days in the current week
+    useEffect(() => {
+        const fetchWeekCalories = async () => {
+            if (!user) return
+
+            try {
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                const startDate = new Date(today)
+                startDate.setDate(today.getDate() - 2)
+
+                const caloriesMap: { [date: string]: number } = {}
+
+                for (let i = 0; i < 7; i++) {
+                    const currentDate = new Date(startDate)
+                    currentDate.setDate(startDate.getDate() + i)
+                    const dateStr = currentDate.toISOString().split('T')[0]
+                    const dateFoodLogs = await getFoodLogsByDate(dateStr)
+                    const totalCalories = dateFoodLogs.reduce((sum, log) => sum + log.calories, 0)
+                    caloriesMap[dateStr] = totalCalories
+                }
+
+                setWeekCalories(caloriesMap)
+            } catch (error) {
+                console.error('Error fetching week calories:', error)
+            }
+        }
+
+        fetchWeekCalories()
+    }, [user, selectedDate, getFoodLogsByDate, selectedDateMeals])
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-96">
@@ -321,6 +352,36 @@ export const Dashboard: React.FC = () => {
         resetAddMealForm()
     }
 
+    // Helper function to extract recipeId from servingSize
+    const getRecipeIdFromServingSize = (servingSize: string): number | null => {
+        if (servingSize.startsWith('RECIPE_ID:')) {
+            const match = servingSize.match(/^RECIPE_ID:(\d+)\|/)
+            return match ? parseInt(match[1], 10) : null
+        }
+        return null
+    }
+
+    // Helper function to get display serving size (without recipeId)
+    const getDisplayServingSize = (servingSize: string): string => {
+        if (servingSize.startsWith('RECIPE_ID:')) {
+            const parts = servingSize.split('|')
+            return parts.length > 1 ? parts.slice(1).join('|') : servingSize
+        }
+        return servingSize
+    }
+
+    // Handle meal title click to show recipe details
+    const handleMealTitleClick = async (e: React.MouseEvent, meal: FoodLogEntry) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const recipeId = getRecipeIdFromServingSize(meal.servingSize)
+        if (recipeId) {
+            setShowRecipePreview(true)
+            setLoadingRecipeDetails(true)
+            await fetchRecipeDetails(recipeId)
+        }
+    }
+
     const fetchRecipeDetails = async (recipeId: number) => {
         const SPOONACULAR_API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY
 
@@ -402,7 +463,8 @@ export const Dashboard: React.FC = () => {
             const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
             const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
 
-            const servingSize = `${recipe.title} (1 serving of ${recipe.servings})`
+            // Store recipeId in servingSize for later retrieval: "RECIPE_ID:123|actual serving size"
+            const servingSize = `RECIPE_ID:${recipe.id}|${recipe.title} (1 serving of ${recipe.servings})`
 
             await logFoodItem(
                 recipe.title,
@@ -638,67 +700,51 @@ export const Dashboard: React.FC = () => {
 
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fadeIn">
             {/* Calendar and Macro Cards Side by Side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-slideUp">
                 {/* Left: Daily Summary - Macro Cards */}
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="card p-3">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-1.5 bg-red-100 dark:bg-red-900/20 rounded-full flex-shrink-0">
-                                <Flame className="w-4 h-4 text-red-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Calories</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                                    {selectedDateLog?.calories || 0}
-                                </p>
-                            </div>
-                        </div>
+                    <div className="p-3 bg-blue-100 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-200 dark:hover:shadow-blue-900/50">
+                        <p className="text-lg font-bold leading-tight flex justify-between items-center w-full">
+                            <span className="text-sm text-blue-600 dark:text-blue-400">Calories</span>
+                            <span>
+                                <span className="text-blue-600 dark:text-blue-400">{selectedDateLog?.calories || 0}</span>
+                                <span className="text-blue-600 dark:text-blue-400"> / {Math.round(userProfile?.goals?.dailyCalories || 0)}</span>
+                            </span>
+                        </p>
                     </div>
-                    <div className="card p-3">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/20 rounded-full flex-shrink-0">
-                                <Target className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Protein</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                                    {(selectedDateLog?.protein || 0).toFixed(1)}g
-                                </p>
-                            </div>
-                        </div>
+                    <div className="p-3 bg-red-100 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-lg flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-200 dark:hover:shadow-red-900/50">
+                        <p className="text-lg font-bold leading-tight flex justify-between items-center w-full">
+                            <span className="text-sm text-red-600 dark:text-red-400">Protein</span>
+                            <span>
+                                <span className="text-red-600 dark:text-red-400">{Math.round(selectedDateLog?.protein || 0)}g</span>
+                                <span className="text-red-600 dark:text-red-400"> / {Math.round(userProfile?.goals?.protein || 0)}g</span>
+                            </span>
+                        </p>
                     </div>
-                    <div className="card p-3">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-full flex-shrink-0">
-                                <Zap className="w-4 h-4 text-green-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Carbs</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                                    {(selectedDateLog?.carbs || 0).toFixed(1)}g
-                                </p>
-                            </div>
-                        </div>
+                    <div className="p-3 bg-green-100 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded-lg flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-200 dark:hover:shadow-green-900/50">
+                        <p className="text-lg font-bold leading-tight flex justify-between items-center w-full">
+                            <span className="text-sm text-green-600 dark:text-green-400">Carbs</span>
+                            <span>
+                                <span className="text-green-600 dark:text-green-400">{Math.round(selectedDateLog?.carbs || 0)}g</span>
+                                <span className="text-green-600 dark:text-green-400"> / {Math.round(userProfile?.goals?.carbs || 0)}g</span>
+                            </span>
+                        </p>
                     </div>
-                    <div className="card p-3">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex-shrink-0">
-                                <Apple className="w-4 h-4 text-yellow-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Fat</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-                                    {(selectedDateLog?.fat || 0).toFixed(1)}g
-                                </p>
-                            </div>
-                        </div>
+                    <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-200 dark:hover:shadow-yellow-900/50">
+                        <p className="text-lg font-bold leading-tight flex justify-between items-center w-full">
+                            <span className="text-sm text-yellow-600 dark:text-yellow-400">Fat</span>
+                            <span>
+                                <span className="text-yellow-600 dark:text-yellow-400">{Math.round(selectedDateLog?.fat || 0)}g</span>
+                                <span className="text-yellow-600 dark:text-yellow-400"> / {Math.round(userProfile?.goals?.fat || 0)}g</span>
+                            </span>
+                        </p>
                     </div>
                 </div>
 
                 {/* Right: Calendar */}
-                <div className="card px-3 py-2.5">
+                <div className="card px-3 py-2.5 transition-all duration-300 hover:shadow-lg">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-base font-bold text-gray-900 dark:text-white">
                             {isToday ? "Today" : selectedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -715,39 +761,57 @@ export const Dashboard: React.FC = () => {
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => navigateWeek('prev')}
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
                             aria-label="Previous week"
                         >
                             <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
-                        <div className="flex-1 flex items-center gap-0.5 overflow-x-auto">
+                        <div className="flex-1 flex items-center gap-[15px] overflow-x-auto">
                             {weekDays.map((day) => {
                                 const isSelected = day.dateStr === selectedDate
                                 const isDayToday = day.dateStr === new Date().toISOString().split('T')[0]
+                                const dayCalories = weekCalories[day.dateStr] || 0
+                                const dailyGoal = userProfile?.goals?.dailyCalories || 1
+                                const fillPercentage = Math.min((dayCalories / dailyGoal) * 100, 100)
+                                const dayLabel = day.dayName.charAt(0).toUpperCase()
+
                                 return (
                                     <button
                                         key={day.dateStr}
                                         onClick={() => setSelectedDate(day.dateStr)}
-                                        className={`flex flex-col items-center justify-center py-5 px-3 rounded-lg flex-1 transition-all ${isSelected
-                                            ? 'bg-primary-600 text-white shadow-md'
-                                            : isDayToday
-                                                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                            }`}
+                                        className="flex flex-col items-center gap-2 flex-1 transition-all duration-300"
                                     >
-                                        <span className={`text-[10px] font-medium leading-tight ${isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-                                            {day.dayName}
+                                        <span className={`text-xs font-bold ${isSelected || isDayToday ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                            {dayLabel}
                                         </span>
-                                        <span className={`text-sm font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                                            {day.dayNum}
-                                        </span>
+                                        <div className={`relative w-full aspect-square rounded-lg border-2 overflow-hidden transition-all duration-300 ${isSelected
+                                            ? 'border-primary-600 dark:border-primary-500 shadow-md'
+                                            : isDayToday
+                                                ? 'border-primary-400 dark:border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                                            }`}>
+                                            {/* Blue fill from bottom */}
+                                            <div
+                                                className="absolute bottom-0 left-0 right-0 bg-blue-500 dark:bg-blue-600 transition-all duration-500"
+                                                style={{ height: `${fillPercentage}%` }}
+                                            ></div>
+                                            {/* Date number overlay */}
+                                            <div className={`absolute inset-0 flex items-center justify-center font-bold text-sm ${isSelected
+                                                ? 'text-white'
+                                                : fillPercentage > 50
+                                                    ? 'text-white'
+                                                    : 'text-gray-900 dark:text-white'
+                                                }`}>
+                                                {day.dayNum}
+                                            </div>
+                                        </div>
                                     </button>
                                 )
                             })}
                         </div>
                         <button
                             onClick={() => navigateWeek('next')}
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
                             aria-label="Next week"
                         >
                             <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -757,27 +821,135 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Today's Meals - Show First */}
-            <div id="meals-section" className="space-y-6">
+            <div id="meals-section" className="space-y-6 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {isToday ? "Today's Meals" : `Meals for ${selectedDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
                     </h3>
                     <button
                         onClick={openAddMealModal}
-                        className="btn-primary flex items-center space-x-2"
+                        className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-5 h-5" />
                         <span>Add Meal</span>
                     </button>
                 </div>
 
-                {/* Add Meal Form */}
-                {(isAddingMeal || editingMeal) && (
-                    <div className="card">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {/* Meals List - Organized by Meal Type */}
+                <div className="space-y-6">
+                    {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((mealType, index) => {
+                        const mealsForType = selectedDateMeals.filter(meal => meal.mealType === mealType)
+
+                        const mealTypeLabels = {
+                            breakfast: 'Breakfast',
+                            lunch: 'Lunch',
+                            dinner: 'Dinner',
+                            snack: 'Snacks'
+                        }
+
+                        return (
+                            <div key={mealType}>
+                                <div className="space-y-3">
+                                    <div className="flex items-center space-x-2">
+                                        {getMealTypeIcon(mealType)}
+                                        <h4 className="text-base font-semibold text-gray-900 dark:text-white capitalize">
+                                            {mealTypeLabels[mealType]}
+                                        </h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {mealsForType.length === 0 ? (
+                                            <div className="text-sm text-gray-500 dark:text-gray-400 italic pl-8">
+                                                No meals logged
+                                            </div>
+                                        ) : (
+                                            mealsForType.map((meal, mealIndex) => (
+                                                <div
+                                                    key={meal.id}
+                                                    className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-primary-300 dark:hover:border-primary-600 animate-slideIn"
+                                                    style={{ animationDelay: `${mealIndex * 0.1}s` }}
+                                                >
+                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                                    <div className="relative flex items-center justify-between">
+                                                        <div className="flex-1">
+                                                            <h4
+                                                                onClick={(e) => {
+                                                                    const recipeId = getRecipeIdFromServingSize(meal.servingSize)
+                                                                    if (recipeId) {
+                                                                        handleMealTitleClick(e, meal)
+                                                                    }
+                                                                }}
+                                                                className={`font-semibold text-lg mb-2 transition-colors ${getRecipeIdFromServingSize(meal.servingSize)
+                                                                    ? 'text-blue-600 dark:text-blue-400 cursor-pointer hover:underline hover:text-blue-700 dark:hover:text-blue-300'
+                                                                    : 'text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400'
+                                                                    }`}
+                                                            >
+                                                                {meal.foodName}
+                                                            </h4>
+                                                            <div className="flex flex-wrap items-center gap-3 text-sm">
+                                                                <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full font-medium">
+                                                                    <Flame className="w-3.5 h-3.5" />
+                                                                    <span>{meal.calories} cal</span>
+                                                                </span>
+                                                                <span className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full font-medium">P: {meal.protein}g</span>
+                                                                <span className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full font-medium">C: {meal.carbs}g</span>
+                                                                <span className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-full font-medium">F: {meal.fat}g</span>
+                                                                {meal.timestamp && (
+                                                                    <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                                                                        <Clock className="w-3.5 h-3.5" />
+                                                                        <span>{meal.timestamp.toDate().toLocaleTimeString('en-US', {
+                                                                            hour: '2-digit',
+                                                                            minute: '2-digit'
+                                                                        })}</span>
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2 ml-4">
+                                                            <button
+                                                                onClick={() => startEditing(meal)}
+                                                                className="p-2.5 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:scale-110"
+                                                            >
+                                                                <Edit3 className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteMeal(meal.id)}
+                                                                className="p-2.5 rounded-lg text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-110"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                                {index < 3 && (
+                                    <div className="border-t border-gray-200 dark:border-gray-700 mt-6"></div>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* Add Meal Modal */}
+            {(isAddingMeal || editingMeal) && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setIsAddingMeal(false)
+                        cancelEditing()
+                    }}
+                >
+                    <div
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {editingMeal ? 'Edit Meal' : 'Add New Meal'}
-                            </h3>
+                            </h2>
                             <button
                                 onClick={() => {
                                     setIsAddingMeal(false)
@@ -785,11 +957,11 @@ export const Dashboard: React.FC = () => {
                                 }}
                                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="p-6 space-y-4">
                             {/* Meal Type Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -814,199 +986,194 @@ export const Dashboard: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Search Recipes */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Search Recipes
-                                </label>
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search recipes by name (e.g., pasta, salad, chicken)..."
-                                        value={searchQuery}
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value)
-                                            setSearchError(null)
-                                        }}
-                                        className="input-field pl-10"
-                                    />
+                            {/* Tabs */}
+                            <div className="border-b border-gray-200 dark:border-gray-700">
+                                <div className="flex space-x-1">
+                                    <button
+                                        onClick={() => setSearchMode('recipes')}
+                                        className={`px-4 py-2 text-sm font-medium transition-colors ${searchMode === 'recipes'
+                                            ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        Search Recipes
+                                    </button>
+                                    <button
+                                        onClick={() => setSearchMode('manual')}
+                                        className={`px-4 py-2 text-sm font-medium transition-colors ${searchMode === 'manual'
+                                            ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        Manual Entry
+                                    </button>
                                 </div>
-                                {searchQuery && (
-                                    <div className="mt-2 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
-                                        {searchLoading ? (
-                                            <div className="p-4 text-center">
-                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                                    Searching recipes...
-                                                </p>
-                                            </div>
-                                        ) : searchError ? (
-                                            <div className="p-4 text-center">
-                                                <p className="text-sm text-red-600 dark:text-red-400">{searchError}</p>
-                                            </div>
-                                        ) : recipeResults.length === 0 ? (
-                                            <div className="p-4 text-center">
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {searchQuery.length < 2
-                                                        ? 'Type at least 2 characters to search'
-                                                        : 'No recipes found. Try a different search term.'}
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                {recipeResults.map((recipe: any) => {
-                                                    const caloriesPerServing = Math.round(recipe.nutrition.calories)
-                                                    const proteinPerServing = Math.round(recipe.nutrition.protein)
-                                                    const carbsPerServing = Math.round(recipe.nutrition.carbs)
-                                                    const fatPerServing = Math.round(recipe.nutrition.fat)
+                            </div>
 
-                                                    return (
-                                                        <div
-                                                            key={recipe.id}
-                                                            className="w-full p-4 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                                                        >
-                                                            <div className="flex gap-4">
-                                                                {recipe.image && (
-                                                                    <img
-                                                                        src={recipe.image}
-                                                                        alt={recipe.title}
-                                                                        className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                                                    />
-                                                                )}
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-start justify-between gap-2">
-                                                                        <div className="flex-1">
-                                                                            <p className="font-medium text-gray-900 dark:text-white line-clamp-2">
-                                                                                {recipe.title}
-                                                                            </p>
-                                                                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                                                <span className="flex items-center gap-1">
-                                                                                    <Clock className="w-3 h-3" />
-                                                                                    {recipe.readyInMinutes} min
-                                                                                </span>
-                                                                                <span className="flex items-center gap-1">
-                                                                                    <Users className="w-3 h-3" />
-                                                                                    {recipe.servings} servings
-                                                                                </span>
-                                                                                {recipe.healthScore > 0 && (
-                                                                                    <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded text-xs font-medium">
-                                                                                        Health: {recipe.healthScore}/10
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
+                            {/* Search Recipes */}
+                            {searchMode === 'recipes' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Search Recipes
+                                    </label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search recipes by name (e.g., pasta, salad, chicken)..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value)
+                                                setSearchError(null)
+                                            }}
+                                            className="input-field pl-10"
+                                        />
+                                    </div>
+                                    {searchQuery && (
+                                        <div className="mt-2 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-2 space-y-2">
+                                            {searchLoading ? (
+                                                <div className="p-4 text-center">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                                        Searching recipes...
+                                                    </p>
+                                                </div>
+                                            ) : searchError ? (
+                                                <div className="p-4 text-center">
+                                                    <p className="text-sm text-red-600 dark:text-red-400">{searchError}</p>
+                                                </div>
+                                            ) : recipeResults.length === 0 ? (
+                                                <div className="p-4 text-center">
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                        {searchQuery.length < 2
+                                                            ? 'Type at least 2 characters to search'
+                                                            : 'No recipes found. Try a different search term.'}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {recipeResults.map((recipe: any) => {
+                                                        const caloriesPerServing = Math.round(recipe.nutrition.calories)
+                                                        const proteinPerServing = Math.round(recipe.nutrition.protein)
+                                                        const carbsPerServing = Math.round(recipe.nutrition.carbs)
+                                                        const fatPerServing = Math.round(recipe.nutrition.fat)
+
+                                                        return (
+                                                            <div
+                                                                key={recipe.id}
+                                                                className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+                                                            >
+                                                                <div className="relative flex items-center justify-between">
+                                                                    <div className="flex-1">
+                                                                        <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                                            {recipe.title}
+                                                                        </h4>
+                                                                        <div className="flex flex-wrap items-center gap-3 text-sm">
+                                                                            <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full font-medium">
+                                                                                <Flame className="w-3.5 h-3.5" />
+                                                                                <span>{caloriesPerServing} cal</span>
+                                                                            </span>
+                                                                            <span className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full font-medium">P: {proteinPerServing}g</span>
+                                                                            <span className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full font-medium">C: {carbsPerServing}g</span>
+                                                                            <span className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-full font-medium">F: {fatPerServing}g</span>
                                                                         </div>
+                                                                    </div>
+                                                                    <div className="flex items-center space-x-2 ml-4">
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation()
                                                                                 openRecipePreview(recipe)
                                                                             }}
-                                                                            className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                                                                            className="p-2.5 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:scale-110"
                                                                             title="View recipe details"
                                                                         >
                                                                             <Eye className="w-4 h-4" />
                                                                         </button>
+                                                                        <button
+                                                                            onClick={() => addRecipeAsMeal(recipe)}
+                                                                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200"
+                                                                        >
+                                                                            Add
+                                                                        </button>
                                                                     </div>
-                                                                    <div className="grid grid-cols-4 gap-2 mt-3 text-center">
-                                                                        <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded">
-                                                                            <p className="text-xs font-medium text-red-600 dark:text-red-400">{caloriesPerServing}</p>
-                                                                            <p className="text-xs text-gray-500 dark:text-gray-400">cal</p>
-                                                                        </div>
-                                                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                                                                            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">{proteinPerServing}g</p>
-                                                                            <p className="text-xs text-gray-500 dark:text-gray-400">prot</p>
-                                                                        </div>
-                                                                        <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                                                                            <p className="text-xs font-medium text-green-600 dark:text-green-400">{carbsPerServing}g</p>
-                                                                            <p className="text-xs text-gray-500 dark:text-gray-400">carbs</p>
-                                                                        </div>
-                                                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
-                                                                            <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">{fatPerServing}g</p>
-                                                                            <p className="text-xs text-gray-500 dark:text-gray-400">fat</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => addRecipeAsMeal(recipe)}
-                                                                        className="mt-3 w-full btn-primary text-sm py-2"
-                                                                    >
-                                                                        Add to Log
-                                                                    </button>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                                        )
+                                                    })}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Manual Entry */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Meal Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={mealName}
-                                        onChange={(e) => setMealName(e.target.value)}
-                                        className="input-field"
-                                        placeholder="e.g., Grilled Chicken Breast"
-                                    />
+                            {searchMode === 'manual' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Meal Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={mealName}
+                                            onChange={(e) => setMealName(e.target.value)}
+                                            className="input-field"
+                                            placeholder="e.g., Grilled Chicken Breast"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Calories
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={mealCalories}
+                                            onChange={(e) => setMealCalories(e.target.value)}
+                                            className="input-field"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Protein (g)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={mealProtein}
+                                            onChange={(e) => setMealProtein(e.target.value)}
+                                            className="input-field"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Carbs (g)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={mealCarbs}
+                                            onChange={(e) => setMealCarbs(e.target.value)}
+                                            className="input-field"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Fat (g)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={mealFat}
+                                            onChange={(e) => setMealFat(e.target.value)}
+                                            className="input-field"
+                                            placeholder="0"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Calories
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={mealCalories}
-                                        onChange={(e) => setMealCalories(e.target.value)}
-                                        className="input-field"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Protein (g)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={mealProtein}
-                                        onChange={(e) => setMealProtein(e.target.value)}
-                                        className="input-field"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Carbs (g)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={mealCarbs}
-                                        onChange={(e) => setMealCarbs(e.target.value)}
-                                        className="input-field"
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Fat (g)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={mealFat}
-                                        onChange={(e) => setMealFat(e.target.value)}
-                                        className="input-field"
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
+                            )}
 
-                            <div className="flex space-x-3">
+                            <div className="flex space-x-3 pt-4">
                                 <button
                                     onClick={() => editingMeal ? updateMeal() : addMealManually()}
                                     className="btn-primary flex items-center space-x-2"
@@ -1026,257 +1193,194 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Meals List */}
-                <div className="space-y-4">
-                    {selectedDateMeals.length === 0 ? (
-                        <div className="card text-center py-12">
-                            <Utensils className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                No meals logged for this day
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 mb-4">
-                                Start tracking your nutrition by adding your first meal
-                            </p>
-                            <button
-                                onClick={openAddMealModal}
-                                className="btn-primary"
-                            >
-                                Add Your First Meal
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {selectedDateMeals.map((meal) => (
-                                <div key={meal.id} className="card">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4">
-                                            <div className={`p-2 rounded-full ${getMealTypeColor(meal.mealType)}`}>
-                                                {getMealTypeIcon(meal.mealType)}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-medium text-gray-900 dark:text-white">
-                                                    {meal.foodName}
-                                                </h4>
-                                                <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                                                    <span className="flex items-center space-x-1">
-                                                        <Flame className="w-3 h-3" />
-                                                        <span>{meal.calories} cal</span>
+            {/* Recipe Preview Modal */}
+            {
+                showRecipePreview && (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        onClick={closeRecipePreview}
+                    >
+                        <div
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recipe Details</h2>
+                                <button
+                                    onClick={closeRecipePreview}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="p-6">
+                                {loadingRecipeDetails ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                    </div>
+                                ) : selectedRecipeDetails ? (
+                                    <>
+                                        {/* Recipe Header */}
+                                        <div className="flex gap-6 mb-6">
+                                            {selectedRecipeDetails.image && (
+                                                <img
+                                                    src={selectedRecipeDetails.image}
+                                                    alt={selectedRecipeDetails.title}
+                                                    className="w-48 h-48 object-cover rounded-lg flex-shrink-0"
+                                                />
+                                            )}
+                                            <div className="flex-1">
+                                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                                                    {selectedRecipeDetails.title}
+                                                </h3>
+                                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-4 h-4" />
+                                                        {selectedRecipeDetails.readyInMinutes} minutes
                                                     </span>
-                                                    <span>P: {meal.protein}g</span>
-                                                    <span>C: {meal.carbs}g</span>
-                                                    <span>F: {meal.fat}g</span>
-                                                    {meal.timestamp && (
-                                                        <span className="flex items-center space-x-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            <span>{meal.timestamp.toDate().toLocaleTimeString('en-US', {
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}</span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Users className="w-4 h-4" />
+                                                        {selectedRecipeDetails.servings} servings
+                                                    </span>
+                                                    {selectedRecipeDetails.healthScore > 0 && (
+                                                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded">
+                                                            Health Score: {selectedRecipeDetails.healthScore}/10
                                                         </span>
                                                     )}
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={() => startEditing(meal)}
-                                                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => deleteMeal(meal.id)}
-                                                className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-
-
-
-            {/* Recipe Preview Modal */}
-            {showRecipePreview && selectedRecipeDetails && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recipe Details</h2>
-                            <button
-                                onClick={closeRecipePreview}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            {loadingRecipeDetails ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* Recipe Header */}
-                                    <div className="flex gap-6 mb-6">
-                                        {selectedRecipeDetails.image && (
-                                            <img
-                                                src={selectedRecipeDetails.image}
-                                                alt={selectedRecipeDetails.title}
-                                                className="w-48 h-48 object-cover rounded-lg flex-shrink-0"
-                                            />
-                                        )}
-                                        <div className="flex-1">
-                                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                                                {selectedRecipeDetails.title}
-                                            </h3>
-                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                                <span className="flex items-center gap-1">
-                                                    <Clock className="w-4 h-4" />
-                                                    {selectedRecipeDetails.readyInMinutes} minutes
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Users className="w-4 h-4" />
-                                                    {selectedRecipeDetails.servings} servings
-                                                </span>
-                                                {selectedRecipeDetails.healthScore > 0 && (
-                                                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded">
-                                                        Health Score: {selectedRecipeDetails.healthScore}/10
-                                                    </span>
+                                                {selectedRecipeDetails.summary && (
+                                                    <div
+                                                        className="text-sm text-gray-600 dark:text-gray-400"
+                                                        dangerouslySetInnerHTML={{ __html: selectedRecipeDetails.summary }}
+                                                    />
                                                 )}
                                             </div>
-                                            {selectedRecipeDetails.summary && (
-                                                <div
-                                                    className="text-sm text-gray-600 dark:text-gray-400"
-                                                    dangerouslySetInnerHTML={{ __html: selectedRecipeDetails.summary }}
-                                                />
-                                            )}
                                         </div>
-                                    </div>
 
-                                    {/* Ingredients */}
-                                    {selectedRecipeDetails.ingredients && selectedRecipeDetails.ingredients.length > 0 && (
-                                        <div className="mb-6">
-                                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                                <List className="w-5 h-5" />
-                                                Ingredients
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {selectedRecipeDetails.ingredients.map((ingredient: any, index: number) => (
-                                                    <div
-                                                        key={ingredient.id || index}
-                                                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                                                    >
-                                                        {ingredient.image && (
-                                                            <img
-                                                                src={`https://spoonacular.com/cdn/ingredients_100x100/${ingredient.image}`}
-                                                                alt={ingredient.name}
-                                                                className="w-12 h-12 object-cover rounded"
-                                                            />
-                                                        )}
-                                                        <div className="flex-1">
-                                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                                {ingredient.original || `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`}
-                                                            </p>
+                                        {/* Ingredients */}
+                                        {selectedRecipeDetails.ingredients && selectedRecipeDetails.ingredients.length > 0 && (
+                                            <div className="mb-6">
+                                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                                    <List className="w-5 h-5" />
+                                                    Ingredients
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    {selectedRecipeDetails.ingredients.map((ingredient: any, index: number) => (
+                                                        <div
+                                                            key={ingredient.id || index}
+                                                            className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                                        >
+                                                            {ingredient.image && (
+                                                                <img
+                                                                    src={`https://spoonacular.com/cdn/ingredients_100x100/${ingredient.image}`}
+                                                                    alt={ingredient.name}
+                                                                    className="w-12 h-12 object-cover rounded"
+                                                                />
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <p className="font-medium text-gray-900 dark:text-white">
+                                                                    {ingredient.original || `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Instructions */}
-                                    {selectedRecipeDetails.instructions && selectedRecipeDetails.instructions.length > 0 && (
-                                        <div className="mb-6">
-                                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                                Instructions
-                                            </h4>
-                                            <ol className="space-y-3">
-                                                {selectedRecipeDetails.instructions.map((step: any, index: number) => (
-                                                    <li key={index} className="flex gap-3">
-                                                        <span className="flex-shrink-0 w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                                                            {step.number || index + 1}
-                                                        </span>
-                                                        <p className="text-gray-700 dark:text-gray-300 flex-1 pt-0.5">
-                                                            {step.step}
+                                        {/* Instructions */}
+                                        {selectedRecipeDetails.instructions && selectedRecipeDetails.instructions.length > 0 && (
+                                            <div className="mb-6">
+                                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                                    Instructions
+                                                </h4>
+                                                <ol className="space-y-3">
+                                                    {selectedRecipeDetails.instructions.map((step: any, index: number) => (
+                                                        <li key={index} className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-6 h-6 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                                                                {step.number || index + 1}
+                                                            </span>
+                                                            <p className="text-gray-700 dark:text-gray-300 flex-1 pt-0.5">
+                                                                {step.step}
+                                                            </p>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </div>
+                                        )}
+
+                                        {/* Nutrition Info */}
+                                        {selectedRecipeDetails.nutrition && (
+                                            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                                    Nutrition (per serving)
+                                                </h4>
+                                                <div className="grid grid-cols-4 gap-4">
+                                                    <div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">Calories</p>
+                                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                                            {Math.round(selectedRecipeDetails.nutrition.calories)}
                                                         </p>
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        </div>
-                                    )}
-
-                                    {/* Nutrition Info */}
-                                    {selectedRecipeDetails.nutrition && (
-                                        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                                Nutrition (per serving)
-                                            </h4>
-                                            <div className="grid grid-cols-4 gap-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Calories</p>
-                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
-                                                        {Math.round(selectedRecipeDetails.nutrition.calories)}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Protein</p>
-                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
-                                                        {Math.round(selectedRecipeDetails.nutrition.protein)}g
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Carbs</p>
-                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
-                                                        {Math.round(selectedRecipeDetails.nutrition.carbs)}g
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Fat</p>
-                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
-                                                        {Math.round(selectedRecipeDetails.nutrition.fat)}g
-                                                    </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">Protein</p>
+                                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                                            {Math.round(selectedRecipeDetails.nutrition.protein)}g
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">Carbs</p>
+                                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                                            {Math.round(selectedRecipeDetails.nutrition.carbs)}g
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">Fat</p>
+                                                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                                            {Math.round(selectedRecipeDetails.nutrition.fat)}g
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Add Recipe Button */}
-                                    <div className="flex space-x-3">
-                                        <button
-                                            onClick={() => {
-                                                const recipe = recipeResults.find((r: any) => r.id === selectedRecipeDetails.id)
-                                                if (recipe) {
-                                                    addRecipeAsMeal(recipe)
-                                                    closeRecipePreview()
-                                                }
-                                            }}
-                                            className="btn-primary flex items-center space-x-2 flex-1"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Add to Meal Log</span>
-                                        </button>
-                                        <button
-                                            onClick={closeRecipePreview}
-                                            className="btn-secondary"
-                                        >
-                                            Close
-                                        </button>
+                                        {/* Add Recipe Button */}
+                                        <div className="flex space-x-3">
+                                            <button
+                                                onClick={() => {
+                                                    const recipe = recipeResults.find((r: any) => r.id === selectedRecipeDetails.id)
+                                                    if (recipe) {
+                                                        addRecipeAsMeal(recipe)
+                                                        closeRecipePreview()
+                                                    }
+                                                }}
+                                                className="btn-primary flex items-center space-x-2 flex-1"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span>Add to Meal Log</span>
+                                            </button>
+                                            <button
+                                                onClick={closeRecipePreview}
+                                                className="btn-secondary"
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex items-center justify-center py-12">
+                                        <p className="text-gray-600 dark:text-gray-400">Failed to load recipe details.</p>
                                     </div>
-                                </>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }
