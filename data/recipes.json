@@ -1,0 +1,1893 @@
+[
+  {
+    "id": 635675,
+    "title": "Boozy Bbq Chicken",
+    "image": "https://img.spoonacular.com/recipes/635675-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 6,
+    "healthScore": 37,
+    "summary": "Boozy Bbq Chicken could be just the <b>gluten free and dairy free</b> recipe you've been looking for. This recipe makes 6 servings with <b>725 calories</b>, <b>32g of protein</b>, and <b>33g of fat</b> each. For <b>$3.33 per serving</b>, this recipe <b>covers 40%</b> of your daily requirements of vitamins and minerals. This recipe from Foodista requires wooden skewers, dijon mustard, molasses, and orange juice. It works well as a main course. From preparation to the plate, this recipe takes roughly <b>45 minutes</b>. 72 people found this recipe to be flavorful and satisfying. Taking all factors into account, this recipe <b>earns a spoonacular score of 93%</b>, which is outstanding. Try <a href=\"https://spoonacular.com/recipes/boozy-bbq-meatballs-in-the-crockpot-497097\">Boozy BBQ Meatballs (in the crockpot)</a>, <a href=\"https://spoonacular.com/recipes/boozy-bum-chicken-74081\">Boozy Bum Chicken</a>, and <a href=\"https://spoonacular.com/recipes/mirjs-boozy-maple-chicken-107728\">Mirj's Boozy Maple Chicken</a> for similar recipes.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 14106,
+        "name": "white wine",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "white-wine.jpg",
+        "original": "1/4 cup beer or white wine"
+      },
+      {
+        "id": 14003,
+        "name": "beer",
+        "amount": 12,
+        "unit": "ounces",
+        "image": "beer.jpg",
+        "original": "12 ounces can of your favorite beer (I sugggest Hefeweizen's complementary fruity flavor)"
+      },
+      {
+        "id": 11090,
+        "name": "broccoli",
+        "amount": 1,
+        "unit": "head",
+        "image": "broccoli.jpg",
+        "original": "Large head broccoli"
+      },
+      {
+        "id": 20040,
+        "name": "slow cook brown rice",
+        "amount": 1.5,
+        "unit": "cups",
+        "image": "uncooked-brown-rice.png",
+        "original": "1 1/2 cups slow cook brown rice"
+      },
+      {
+        "id": 9070,
+        "name": "cherry tomotoes",
+        "amount": 12,
+        "unit": "",
+        "image": "cherries.jpg",
+        "original": "12 cherry tomotoes"
+      },
+      {
+        "id": 1032046,
+        "name": "dijon mustard",
+        "amount": 0.75,
+        "unit": "cup",
+        "image": "dijon-mustard.jpg",
+        "original": "3/4 cup Dijon mustard"
+      },
+      {
+        "id": 10211216,
+        "name": "ginger",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "ginger.png",
+        "original": "1 tablespoon fresh ginger or 1 tbsp wet ginger from a jar (no powder!)"
+      },
+      {
+        "id": 11215,
+        "name": "garlic",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "garlic.png",
+        "original": "1 tablespoon clove fresh garlic (minced) or 1 wet garlic from a jar (no powder!)"
+      },
+      {
+        "id": 11333,
+        "name": "bell pepper",
+        "amount": 1,
+        "unit": "",
+        "image": "green-pepper.jpg",
+        "original": "1 green pepper"
+      },
+      {
+        "id": 1002030,
+        "name": "ground pepper",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "pepper.jpg",
+        "original": "2 tablespoons fresh ground pepper"
+      },
+      {
+        "id": 9150,
+        "name": "lemon",
+        "amount": 1,
+        "unit": "",
+        "image": "lemon.png",
+        "original": "1 juicy lemon"
+      },
+      {
+        "id": 16424,
+        "name": "soy sauce",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "soy-sauce.jpg",
+        "original": "1/4 cup low sodium soy sauce"
+      },
+      {
+        "id": 19304,
+        "name": "molasses",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "molasses.jpg",
+        "original": "2 tablespoons molasses"
+      },
+      {
+        "id": 11260,
+        "name": "bite sized mushrooms",
+        "amount": 12,
+        "unit": "",
+        "image": "mushrooms.png",
+        "original": "12 bite sized mushrooms"
+      },
+      {
+        "id": 4053,
+        "name": "olive oil",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "olive-oil.jpg",
+        "original": "1/4 cup olive oil"
+      },
+      {
+        "id": 9200,
+        "name": "orange",
+        "amount": 1,
+        "unit": "large",
+        "image": "orange.png",
+        "original": "1 large orange"
+      },
+      {
+        "id": 9206,
+        "name": "orange juice",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "orange-juice.jpg",
+        "original": "1/2 cup orange juice (or tablespoon/mash another orange"
+      },
+      {
+        "id": 1002030,
+        "name": "pepper",
+        "amount": 0.5,
+        "unit": "teaspoon",
+        "image": "pepper.jpg",
+        "original": "1/2 teaspoon pepper"
+      },
+      {
+        "id": 11821,
+        "name": "bell pepper",
+        "amount": 1,
+        "unit": "",
+        "image": "red-pepper.jpg",
+        "original": "1 red pepper"
+      },
+      {
+        "id": 10011282,
+        "name": "onion",
+        "amount": 1,
+        "unit": "",
+        "image": "red-onion.png",
+        "original": "1 red onion"
+      },
+      {
+        "id": 4114,
+        "name": "newman's own salad dressing",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "italian-dressing.jpg",
+        "original": "1/2 cup Newman's Own Low-Fat Italian Salad Dressing"
+      },
+      {
+        "id": 2047,
+        "name": "salt",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "salt.jpg",
+        "original": "1 tablespoon salt"
+      },
+      {
+        "id": 1026168,
+        "name": "tabasco sauce",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "hot-sauce-or-tabasco.png",
+        "original": "2 tablespoons Sriracha or Tabasco sauce"
+      },
+      {
+        "id": 14412,
+        "name": "water",
+        "amount": 3.5,
+        "unit": "cups",
+        "image": "water.png",
+        "original": "3 1/2 cups water"
+      },
+      {
+        "id": 14106,
+        "name": "white wine",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "white-wine.jpg",
+        "original": "1/4 cup white wine"
+      },
+      {
+        "id": 5006,
+        "name": "chicken",
+        "amount": 3,
+        "unit": "lbs",
+        "image": "whole-chicken.jpg",
+        "original": "1 whole chicken (about 3 lbs)"
+      },
+      {
+        "id": -1,
+        "name": "wooden skewers",
+        "amount": 6,
+        "unit": "servings",
+        "image": null,
+        "original": "Wooden skewers"
+      },
+      {
+        "id": -1,
+        "name": "wooden skewers",
+        "amount": 6,
+        "unit": "servings",
+        "image": null,
+        "original": "Wooden skewers"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Cut orange, peppers, onion & broccoli into large bite-sized chunks (at least 1\" thick) and place in the dish."
+      },
+      {
+        "number": 2,
+        "step": "Add mushrooms and tomatoes.Stir veggies in marinade to coat.Cover and refrigerate while you prep chicken.Warm outdoor grill to medium heat.Rinse chicken and pat dry with paper towel (toss that towel!).In small bowl mix mustard, salt and pepper."
+      },
+      {
+        "number": 3,
+        "step": "Brush chicken with mustard mixture.Wash your hands and go stir those veggies so all sides absorb the marinade.When beer is half empty, refill can with salad dressing and squeeze in juice from 1/2 lemon.Put can on a disposable baking sheet."
+      },
+      {
+        "number": 4,
+        "step": "Place upright chicken on can like a stand, inserting can into cavity of chicken."
+      },
+      {
+        "number": 5,
+        "step": "Place baking sheet with beer and chicken on the preheated grill.Cover. Set your time for 1 hour.Start on a second beer or that remaining white wine.In a medium saucepan, pour rice, water, and 3-4 splashes of your beverage (about 1/4 cup) into medium sauce pan.Bring to a boil, stir and reduce heat to low.Cover with lid and cook for 25-30 minutes.Back to the kebabs."
+      },
+      {
+        "number": 6,
+        "step": "Remove veggies from fridge and using the sharp end of the skewer begin threading.Distribute veggies evenly onto 6-8 skewers.Check rice: It's done when all liquid is absorbed but before it starts sticking to the bottom of the pan.Turn off heat under the rice and let it sit.Go back to grill.You should be at about an hour on the chicken.Carefully slice in to see meat has gone from pink to white."
+      },
+      {
+        "number": 7,
+        "step": "Remove from grill"
+      },
+      {
+        "number": 8,
+        "step": "Allow to cool for at least 15 minutes so you don't burn the hell out of yourself cutting it into pieces for your guest(s).In the meantime throw those kebabs directly on the grill.Flip them over after about 5 minutes to get the other side and allow to cook for another 5-8min.Kebabs are done when veggies are al dente (softened but still firm).Turn off grill and remove from heat.Put rice in a serving dish, and chicken pieces and full skewers on a platter. Squeeze remaining lemon juice over chicken."
+      },
+      {
+        "number": 9,
+        "step": "Let people serve themselves.Eat, drink and be merry!DW | Food and Drink"
+      }
+    ],
+    "nutrition": {
+      "calories": 725.28,
+      "protein": 32.27,
+      "carbs": 72.28,
+      "fat": 32.78
+    }
+  },
+  {
+    "id": 641836,
+    "title": "Easy Baked Parmesan Chicken",
+    "image": "https://img.spoonacular.com/recipes/641836-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 4,
+    "healthScore": 27,
+    "summary": "Easy Baked Parmesan Chicken might be a good recipe to expand your main course recipe box. This recipe serves 4 and costs $3.4 per serving. One portion of this dish contains roughly <b>62g of protein</b>, <b>20g of fat</b>, and a total of <b>497 calories</b>. This recipe is liked by 92 foodies and cooks. This recipe from Foodista requires chicken breast halves, egg, parmesan cheese, and mozzarella cheese. From preparation to the plate, this recipe takes roughly <b>45 minutes</b>. With a spoonacular <b>score of 93%</b>, this dish is amazing. <a href=\"https://spoonacular.com/recipes/easy-baked-chicken-parmesan-1450493\">Easy Baked Chicken Parmesan</a>, <a href=\"https://spoonacular.com/recipes/easy-parmesan-baked-chicken-137192\">Easy Parmesan Baked Chicken</a>, and <a href=\"https://spoonacular.com/recipes/weight-watchers-easy-healthy-baked-chicken-parmesan-1293595\">Weight Watchers Easy Healthy Baked Chicken Parmesan</a> are very similar to this recipe.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 1045062,
+        "name": "chicken breast halves",
+        "amount": 8,
+        "unit": "",
+        "image": "chicken-breasts.png",
+        "original": "8 boneless, skinless chicken breast halves"
+      },
+      {
+        "id": 1123,
+        "name": "egg",
+        "amount": 2,
+        "unit": "",
+        "image": "egg.png",
+        "original": "2 egg, slightly beaten"
+      },
+      {
+        "id": 10028033,
+        "name": "bread crumbs",
+        "amount": 1.5,
+        "unit": "cups",
+        "image": "italian-bread.jpg",
+        "original": "1 1/2 cups Italian bread crumbs"
+      },
+      {
+        "id": 10011549,
+        "name": "pasta sauce",
+        "amount": 1,
+        "unit": "jar",
+        "image": "tomato-sauce-or-pasta-sauce.jpg",
+        "original": "1 jar pasta sauce"
+      },
+      {
+        "id": 1001026,
+        "name": "mozzarella cheese",
+        "amount": 1,
+        "unit": "cup",
+        "image": "shredded-cheese-white.jpg",
+        "original": "1 cup mozzarella cheese, shredded"
+      },
+      {
+        "id": 1033,
+        "name": "parmesan cheese",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "parmesan.jpg",
+        "original": "1/4 cup Parmesan cheese, grated"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Preheat oven to 400 degrees. Dip chicken in egg, then bread crumbs."
+      },
+      {
+        "number": 2,
+        "step": "In 13 X 9 inch baking dish, arrange chicken. bake uncovered 20 minutes."
+      },
+      {
+        "number": 3,
+        "step": "Pour pasta sauce over chicken, then top with cheese."
+      },
+      {
+        "number": 4,
+        "step": "Bake 10 more minutes or until chicken reaches 170 degrees and is no longer pink."
+      },
+      {
+        "number": 5,
+        "step": "Serve immediately with or over pasta."
+      }
+    ],
+    "nutrition": {
+      "calories": 496.99,
+      "protein": 62.08,
+      "carbs": 15.48,
+      "fat": 20.03
+    }
+  },
+  {
+    "id": 652421,
+    "title": "Moroccan Chicken Tagine",
+    "image": "https://img.spoonacular.com/recipes/652421-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 6,
+    "healthScore": 24,
+    "summary": "Moroccan Chicken Tagine is a main course that serves 6. One serving contains <b>224 calories</b>, <b>14g of protein</b>, and <b>6g of fat</b>. For <b>$1.49 per serving</b>, this recipe <b>covers 19%</b> of your daily requirements of vitamins and minerals. 6 people found this recipe to be scrumptious and satisfying. It is brought to you by Foodista. A mixture of flour, almond slivers, canned tomatoes, and a handful of other ingredients are all it takes to make this recipe so tasty. From preparation to the plate, this recipe takes around <b>45 minutes</b>. It is a good option if you're following a <b>dairy free</b> diet. Taking all factors into account, this recipe <b>earns a spoonacular score of 74%</b>, which is pretty good. Similar recipes include <a href=\"https://spoonacular.com/recipes/moroccan-chicken-tagine-264133\">Moroccan Chicken Tagine</a>, <a href=\"https://spoonacular.com/recipes/moroccan-chicken-tagine-124767\">Moroccan Chicken Tagine</a>, and <a href=\"https://spoonacular.com/recipes/moroccan-chicken-tagine-100347\">Moroccan Chicken Tagine</a>.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 1032027,
+        "name": "moroccan spice mixture",
+        "amount": 2,
+        "unit": "Tbsp",
+        "image": "seasoning.png",
+        "original": "2 Tbsp. Moroccan spice mixture (1/2 tsp. cayenne, 1/2 tsp. turmeric, 2 1/2 tsp cumin, 1 tsp. allspice, 1 tsp. cinnamon, 1/2 tsp. coriander)"
+      },
+      {
+        "id": 10012061,
+        "name": "almond slivers",
+        "amount": 0.125,
+        "unit": "c",
+        "image": "almonds-slivered.png",
+        "original": "1/8 c. almond slivers"
+      },
+      {
+        "id": 9032,
+        "name": "apricot halves",
+        "amount": 0.5,
+        "unit": "c",
+        "image": "dried-apricots.jpg",
+        "original": "1/2 c. dried apricot halves, roughly chopped"
+      },
+      {
+        "id": 16058,
+        "name": "chick peas",
+        "amount": 14,
+        "unit": "oz",
+        "image": "chickpeas.png",
+        "original": "1 14-oz. can chick peas, drained"
+      },
+      {
+        "id": 10011531,
+        "name": "canned tomatoes",
+        "amount": 28,
+        "unit": "oz",
+        "image": "tomatoes-canned.png",
+        "original": "1 28-oz. can whole peeled tomatoes"
+      },
+      {
+        "id": 11165,
+        "name": "cilantro",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "cilantro.png",
+        "original": "1/2 cup Finely Chopped Cilantro"
+      },
+      {
+        "id": 1034053,
+        "name": "extra virgin olive oil",
+        "amount": 1,
+        "unit": "Tbsp",
+        "image": "olive-oil.jpg",
+        "original": "1 Tbsp. extra virgin olive oil"
+      },
+      {
+        "id": 6984,
+        "name": "chicken broth",
+        "amount": 2,
+        "unit": "c",
+        "image": "chicken-broth.png",
+        "original": "2 c. fat free chicken broth"
+      },
+      {
+        "id": 20081,
+        "name": "flour",
+        "amount": 1,
+        "unit": "Tbsp",
+        "image": "flour.png",
+        "original": "1 Tbsp. flour"
+      },
+      {
+        "id": 10211216,
+        "name": "ginger root",
+        "amount": 1,
+        "unit": "tsp",
+        "image": "ginger.png",
+        "original": "1 tsp. fresh ginger root, minced"
+      },
+      {
+        "id": 10211215,
+        "name": "garlic clove",
+        "amount": 1,
+        "unit": "",
+        "image": "garlic.jpg",
+        "original": "1 garlic clove, minced"
+      },
+      {
+        "id": 1002030,
+        "name": "salt and ground pepper",
+        "amount": 6,
+        "unit": "servings",
+        "image": "pepper.jpg",
+        "original": "Salt and ground black pepper"
+      },
+      {
+        "id": 19296,
+        "name": "honey",
+        "amount": 1,
+        "unit": "Tbsp",
+        "image": "honey.png",
+        "original": "1 Tbsp. honey"
+      },
+      {
+        "id": 11282,
+        "name": "onion",
+        "amount": 1,
+        "unit": "",
+        "image": "brown-onion.png",
+        "original": "1 onion, finely chopped"
+      },
+      {
+        "id": 1055062,
+        "name": "chicken breasts",
+        "amount": 2,
+        "unit": "large",
+        "image": "chicken-breasts.png",
+        "original": "2 large boneless skinless chicken breasts, cut into 1-inch cubes"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "In a pie plate, combine the flour and Moroccan spice mixture."
+      },
+      {
+        "number": 2,
+        "step": "Add chicken pieces and toss to coat."
+      },
+      {
+        "number": 3,
+        "step": "Heat oil in your pressure cooker over medium-high heat. Once hot, add the chicken pieces and allow to brown for one minute per side."
+      },
+      {
+        "number": 4,
+        "step": "Remove chicken from pressure cooker and set aside.Reduce heat to medium and add ginger and onions."
+      },
+      {
+        "number": 5,
+        "step": "Saute for three minutes, until onions are semi-translucent."
+      },
+      {
+        "number": 6,
+        "step": "Add garlic and cook for another minute."
+      },
+      {
+        "number": 7,
+        "step": "Add the apricots, whole tomatoes, chicken broth or stock, and browned chicken pieces to the pot.Cover, and bring to low pressure over medium-high heat. Once you have reached pressure, cook for eight minutes then remove from heat and release the pressure using the quick release method (open the steam valve).Stir in the chick peas, almonds, and honey and let them warm for a few minutes.Check your chicken for done-ness and taste the tagine. Adjust salt and pepper as needed."
+      },
+      {
+        "number": 8,
+        "step": "Serve over couscous and garnish with cilantro leaves.*If using a Dutch Oven instead, follow steps 1-4 as described, then bring the mixture to a boil, reduce to a simmer, and cook for 20-25 minutes or until apricots are tender. Continue with step 6."
+      }
+    ],
+    "nutrition": {
+      "calories": 223.58,
+      "protein": 14.4,
+      "carbs": 30.87,
+      "fat": 6.33
+    }
+  },
+  {
+    "id": 637276,
+    "title": "Cassoulet with Chicken or Duck",
+    "image": "https://img.spoonacular.com/recipes/637276-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 8,
+    "healthScore": 38,
+    "summary": "Cassoulet with Chicken or Duck might be a good recipe to expand your main course recipe box. Watching your figure? This dairy free recipe has <b>651 calories</b>, <b>51g of protein</b>, and <b>22g of fat</b> per serving. This recipe serves 8 and costs $2.36 per serving. From preparation to the plate, this recipe takes around <b>45 minutes</b>. If you have olive oil, onion, chicken sausage, and a few other ingredients on hand, you can make it. 1 person were glad they tried this recipe. It is brought to you by Foodista. Taking all factors into account, this recipe <b>earns a spoonacular score of 56%</b>, which is good. Users who liked this recipe also liked <a href=\"https://spoonacular.com/recipes/duck-and-sausage-cassoulet-1335909\">Duck and Sausage Cassoulet</a>, <a href=\"https://spoonacular.com/recipes/cassoulet-with-duck-confit-74902\">Cassoulet with Duck Confit</a>, and <a href=\"https://spoonacular.com/recipes/duck-and-sausage-cassoulet-205597\">Duck and Sausage Cassoulet</a>.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 10316049,
+        "name": "beans",
+        "amount": 1,
+        "unit": "lb",
+        "image": "white-beans.jpg",
+        "original": "1 lb dried white beans"
+      },
+      {
+        "id": 14412,
+        "name": "water",
+        "amount": 8,
+        "unit": "cups",
+        "image": "water.png",
+        "original": "8 cups cold water"
+      },
+      {
+        "id": 6008,
+        "name": "beef broth",
+        "amount": 2,
+        "unit": "cups",
+        "image": "beef-broth.png",
+        "original": "2 cups beef broth"
+      },
+      {
+        "id": 11887,
+        "name": "tomato paste",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "tomato-paste.jpg",
+        "original": "1 tablespoon tomato paste"
+      },
+      {
+        "id": 11282,
+        "name": "onion",
+        "amount": 2,
+        "unit": "cups",
+        "image": "brown-onion.png",
+        "original": "2 cups onion, chopped"
+      },
+      {
+        "id": 11143,
+        "name": "celery",
+        "amount": 3,
+        "unit": "inch",
+        "image": "celery.jpg",
+        "original": "1 (3-inch) piece celery, cut into thirds"
+      },
+      {
+        "id": 1012049,
+        "name": "thyme sprigs",
+        "amount": 3,
+        "unit": "",
+        "image": "thyme.jpg",
+        "original": "3 fresh thyme sprigs"
+      },
+      {
+        "id": 2004,
+        "name": "bay leaf",
+        "amount": 0.5,
+        "unit": "",
+        "image": "bay-leaves.jpg",
+        "original": "1/2 bay leaf"
+      },
+      {
+        "id": 1002011,
+        "name": "cloves",
+        "amount": 3,
+        "unit": "",
+        "image": "cloves.jpg",
+        "original": "3 whole cloves"
+      },
+      {
+        "id": 10211297,
+        "name": "flat-leaf parsley sprigs plus",
+        "amount": 3,
+        "unit": "",
+        "image": "parsley.jpg",
+        "original": "3 fresh flat-leaf parsley sprigs plus 1/2 cup chopped leaves"
+      },
+      {
+        "id": 1022030,
+        "name": "peppercorns",
+        "amount": 0.25,
+        "unit": "teaspoon",
+        "image": "black-pepper.png",
+        "original": "1/4 teaspoon whole black peppercorns"
+      },
+      {
+        "id": 10011693,
+        "name": "canned tomatoes",
+        "amount": 14,
+        "unit": "oz",
+        "image": "tomatoes-canned.png",
+        "original": "1 (14-oz) can stewed tomatoes, finely chopped with juice"
+      },
+      {
+        "id": 5317,
+        "name": "duck legs",
+        "amount": 4,
+        "unit": "",
+        "image": "duck-legs.jpg",
+        "original": "4 chicken or duck legs (1 3/4 lb total)"
+      },
+      {
+        "id": 4053,
+        "name": "olive oil",
+        "amount": 1,
+        "unit": "tablespoons",
+        "image": "olive-oil.jpg",
+        "original": "1 to 2 tablespoons olive oil"
+      },
+      {
+        "id": 93668,
+        "name": "chicken sausage",
+        "amount": 1,
+        "unit": "lb",
+        "image": "chicken-or-turkey-sausage.jpg",
+        "original": "1 lb cooked pork or chicken sausage, cut crosswise into thick slices"
+      },
+      {
+        "id": 18079,
+        "name": "coarse bread crumbs",
+        "amount": 2,
+        "unit": "cups",
+        "image": "breadcrumbs.jpg",
+        "original": "2 cups coarse fresh bread crumbs (preferably from a baguette)"
+      },
+      {
+        "id": 2047,
+        "name": "salt",
+        "amount": 1.5,
+        "unit": "teaspoons",
+        "image": "salt.jpg",
+        "original": "1 1/2 teaspoons salt"
+      },
+      {
+        "id": 1002030,
+        "name": "pepper",
+        "amount": 0.5,
+        "unit": "teaspoon",
+        "image": "pepper.jpg",
+        "original": "1/2 teaspoon black pepper"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Cover beans with cold water by 2 inches in a large bowl and soak 8 to 12 hours."
+      },
+      {
+        "number": 2,
+        "step": "Drain in a colander."
+      },
+      {
+        "number": 3,
+        "step": "Transfer beans to a 6- to 8-quart pot and bring to a boil with 8 cups cold water, broth, tomato paste, onion, and 2 tablespoons garlic. Put celery, thyme, bay leaf, cloves, parsley sprigs, and peppercorns in cheesecloth and tie into a bundle with string to make a bouquet garni."
+      },
+      {
+        "number": 4,
+        "step": "Add bouquet garni to beans, then reduce heat and simmer, uncovered, until beans are almost tender, 45 minutes to 1 hour. Stir in tomatoes with juice and simmer until beans are just tender, about 15 minutes more."
+      }
+    ],
+    "nutrition": {
+      "calories": 650.81,
+      "protein": 50.69,
+      "carbs": 64.41,
+      "fat": 21.84
+    }
+  },
+  {
+    "id": 650942,
+    "title": "Maple-Glazed Thanksgiving Turkey",
+    "image": "https://img.spoonacular.com/recipes/650942-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 12,
+    "healthScore": 2,
+    "summary": "If you have about <b>45 minutes</b> to spend in the kitchen, Maple-Glazed Thanksgiving Turkey might be a super <b>gluten free and primal</b> recipe to try. This recipe serves 12 and costs 81 cents per serving. One portion of this dish contains roughly <b>8g of protein</b>, <b>10g of fat</b>, and a total of <b>158 calories</b>. 1 person were impressed by this recipe. This recipe from Foodista requires onion, garlic, carrots, and celery. It works well as a side dish. It will be a hit at your <b>Thanksgiving</b> event. With a spoonacular <b>score of 21%</b>, this dish is rather bad. Try <a href=\"https://spoonacular.com/recipes/thanksgiving-cupcakes-turkey-cranberry-and-maple-519011\">Thanksgiving Cupcakes – Turkey, Cranberry, and Maple</a>, <a href=\"https://spoonacular.com/recipes/maple-glazed-turkey-75166\">Maple-glazed Turkey</a>, and <a href=\"https://spoonacular.com/recipes/maple-glazed-turkey-137870\">Maple-Glazed Turkey</a> for similar recipes.",
+    "cuisines": [],
+    "dishTypes": [
+      "side dish"
+    ],
+    "ingredients": [
+      {
+        "id": 5165,
+        "name": "turkey",
+        "amount": 14,
+        "unit": "inches",
+        "image": "turkey-raw-whole.jpg",
+        "original": "14 inches to 16-pound turkey (completely defrosted the refrigerator, if necessary)"
+      },
+      {
+        "id": 1145,
+        "name": "butter",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "butter-sliced.jpg",
+        "original": "1/2 cup unsalted butter"
+      },
+      {
+        "id": 9206,
+        "name": "orange juice",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "orange-juice.jpg",
+        "original": "1/4 cup fresh orange juice"
+      },
+      {
+        "id": 19911,
+        "name": "natural maple syrup",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "maple-syrup.png",
+        "original": "1/4 cup natural maple syrup"
+      },
+      {
+        "id": 1012049,
+        "name": "thyme",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "thyme.jpg",
+        "original": "1 tablespoon minced fresh thyme"
+      },
+      {
+        "id": 1082047,
+        "name": "kosher salt",
+        "amount": 1,
+        "unit": "teaspoon",
+        "image": "salt.jpg",
+        "original": "1 teaspoon kosher salt"
+      },
+      {
+        "id": 1002030,
+        "name": "freshly cracked pepper",
+        "amount": 0.5,
+        "unit": "teaspoon",
+        "image": "pepper.jpg",
+        "original": "1/2 teaspoon freshly cracked black pepper"
+      },
+      {
+        "id": 2004,
+        "name": "bay leaves",
+        "amount": 4,
+        "unit": "",
+        "image": "bay-leaves.jpg",
+        "original": "4 bay leaves (Call me! My bay tree is overloaded.)"
+      },
+      {
+        "id": 11143,
+        "name": "celery",
+        "amount": 4,
+        "unit": "stalks",
+        "image": "celery.jpg",
+        "original": "4 stalks celery, roughly chopped"
+      },
+      {
+        "id": 11282,
+        "name": "onion",
+        "amount": 1,
+        "unit": "large",
+        "image": "brown-onion.png",
+        "original": "1 large onion, roughly chopped"
+      },
+      {
+        "id": 11124,
+        "name": "carrots",
+        "amount": 3,
+        "unit": "",
+        "image": "sliced-carrot.png",
+        "original": "3 carrots, roughly chopped"
+      },
+      {
+        "id": 11215,
+        "name": "garlic",
+        "amount": 10,
+        "unit": "cloves",
+        "image": "garlic.png",
+        "original": "10 cloves garlic (leave papery skin on)"
+      },
+      {
+        "id": 5311,
+        "name": "chicken stock",
+        "amount": 1.5,
+        "unit": "cups",
+        "image": "canned-food.png",
+        "original": "1 1/2 cups chicken stock (or 1 can organic chicken broth)"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Preheat the oven to 350 F. If the stuffing was refrigerated, bring it to room temperature before putting it into the bird."
+      },
+      {
+        "number": 2,
+        "step": "Remove any innards from the turkey."
+      },
+      {
+        "number": 3,
+        "step": "Remove any excess fat from the neck or chest cavity and rinse the cavities thoroughly with cool water and pat dry. Season liberally with salt and black pepper."
+      },
+      {
+        "number": 4,
+        "step": "Combine the butter, orange juice, maple syrup, thyme, salt, and black pepper in a microwave-safe bowl."
+      },
+      {
+        "number": 5,
+        "step": "Heat to melt, about 60 seconds."
+      },
+      {
+        "number": 6,
+        "step": "Stuff the turkey lightly with your desired stuffing; do not pack it in. This size bird will accommodate about 7 cups total. If there is skin to pull together to cover the stuffing, secure it with skewers. If this skin has been trimmed off, cover the exposed stuffing with foil."
+      },
+      {
+        "number": 7,
+        "step": "Add bay leaves, chopped vegetables, garlic, and 1 cup of stock (or water) to the roasting pan."
+      },
+      {
+        "number": 8,
+        "step": "Place a roasting rack in the pan (one that is high enough to hold the turkey above the liquids)."
+      },
+      {
+        "number": 9,
+        "step": "Brush the turkey liberally with the melted thyme butter and place on the rack, breast side down."
+      },
+      {
+        "number": 10,
+        "step": "Place the pan on the middle rack of the preheated oven to roast. Baste the turkey every 30 minutes with the thyme butter."
+      },
+      {
+        "number": 11,
+        "step": "After 1 hour, flip the turkey onto its back for the remaining cooking time. If any areas start to darken too quickly, cover lightly with foil. Continue to baste every 30 minutes. If the pan dries out, add additional stock or water. Never let the pan become dry."
+      },
+      {
+        "number": 12,
+        "step": "This size turkey will take about 4 hours to roast (about 20 minutes per pound). The turkey is done when a thermometer inserted in the thickest part of the thigh reads 160 F; the juices should run clear when you pierce the thigh."
+      },
+      {
+        "number": 13,
+        "step": "Remove the turkey from the pan and place it on a carving board. Tent the turkey loosely with foil and let rest for at least 30 minutes before carving. This gives you plenty of time to make the pan gravy."
+      }
+    ],
+    "nutrition": {
+      "calories": 157.59,
+      "protein": 7.81,
+      "carbs": 9.37,
+      "fat": 10.02
+    }
+  },
+  {
+    "id": 645621,
+    "title": "Grilled Chicken & Corn Red Potato Salad",
+    "image": "https://img.spoonacular.com/recipes/645621-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 8,
+    "healthScore": 26,
+    "summary": "Grilled Chicken & Corn Red Potato Salad is a <b>gluten free and dairy free</b> side dish. One portion of this dish contains approximately <b>13g of protein</b>, <b>7g of fat</b>, and a total of <b>248 calories</b>. This recipe serves 8. For <b>93 cents per serving</b>, this recipe <b>covers 12%</b> of your daily requirements of vitamins and minerals. 1 person found this recipe to be scrumptious and satisfying. A mixture of red wine vinegar, dijon mustard, ear corn, and a handful of other ingredients are all it takes to make this recipe so scrumptious. It will be a hit at your <b>The Fourth Of July</b> event. From preparation to the plate, this recipe takes around <b>45 minutes</b>. It is brought to you by Foodista. With a spoonacular <b>score of 40%</b>, this dish is solid. Try <a href=\"https://spoonacular.com/recipes/grilled-potato-corn-red-onion-salad-over-arugula-7439\">Grilled Potato, Corn & Red Onion Salad Over Arugula</a>, <a href=\"https://spoonacular.com/recipes/grilled-corn-red-pepper-salad-544514\">Grilled Corn & Red Pepper Salad</a>, and <a href=\"https://spoonacular.com/recipes/warm-red-potato-and-corn-salad-96074\">Warm Red Potato and Corn Salad</a> for similar recipes.",
+    "cuisines": [],
+    "dishTypes": [
+      "side dish"
+    ],
+    "ingredients": [
+      {
+        "id": 1015114,
+        "name": "grilled chicken",
+        "amount": 2,
+        "unit": "cups",
+        "image": "rotisserie-chicken.png",
+        "original": "2 cups Grilled Chicken, chopped and diced"
+      },
+      {
+        "id": 1032046,
+        "name": "dijon mustard",
+        "amount": 1.5,
+        "unit": "teaspoons",
+        "image": "dijon-mustard.jpg",
+        "original": "1 1/2 teaspoons Dijon mustard"
+      },
+      {
+        "id": 11167,
+        "name": "ear corn",
+        "amount": 1,
+        "unit": "",
+        "image": "corn-on-the-cob.jpg",
+        "original": "1 fresh ear corn, with husked removed"
+      },
+      {
+        "id": 1034053,
+        "name": "extra virgin olive oil",
+        "amount": 1,
+        "unit": "tablespoon",
+        "image": "olive-oil.jpg",
+        "original": "1 tablespoon extra virgin olive oil for drizzling on corn"
+      },
+      {
+        "id": 11979,
+        "name": "jalapeno chiles",
+        "amount": 2,
+        "unit": "",
+        "image": "jalapeno-pepper.png",
+        "original": "2 jalapeno chiles, seeded and finely chopped"
+      },
+      {
+        "id": 1034053,
+        "name": "olive oil",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "olive-oil.jpg",
+        "original": "1/2 cup plus 1 tablespoon extra-virgin olive oil"
+      },
+      {
+        "id": 1002030,
+        "name": "pepper",
+        "amount": 0.25,
+        "unit": "teaspoon",
+        "image": "pepper.jpg",
+        "original": "1/4 teaspoon pepper"
+      },
+      {
+        "id": 10011282,
+        "name": "onion",
+        "amount": 0.75,
+        "unit": "cup",
+        "image": "red-onion.png",
+        "original": "3/4 cup finely chopped red onion"
+      },
+      {
+        "id": 10011355,
+        "name": "potatoes",
+        "amount": 7,
+        "unit": "",
+        "image": "red-potatoes.jpg",
+        "original": "7 red potatoes"
+      },
+      {
+        "id": 1022068,
+        "name": "red wine vinegar",
+        "amount": 6,
+        "unit": "tablespoons",
+        "image": "red-wine-vinegar.jpg",
+        "original": "6 tablespoons red wine vinegar"
+      },
+      {
+        "id": 2047,
+        "name": "salt",
+        "amount": 1,
+        "unit": "pinch",
+        "image": "salt.jpg",
+        "original": "a pinch of salt"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Put the onions and jalapeno in a bowl"
+      },
+      {
+        "number": 2,
+        "step": "Add olive oil, vinegar, Dijon mustard,  salt, and pepper.Then whisk until the vinaigrette becomes  a smooth dressing"
+      },
+      {
+        "number": 3,
+        "step": "In a pot of salted water, bring the potatoes to a boil and cook until just tender, about 20 minutes"
+      },
+      {
+        "number": 4,
+        "step": "Drain the potatoes and set aside to cool"
+      },
+      {
+        "number": 5,
+        "step": "Then cut into bite-size pieces"
+      },
+      {
+        "number": 6,
+        "step": "Grill the corn and keep turning until almost all sides have char marks, which should take about 10 minutes or less"
+      },
+      {
+        "number": 7,
+        "step": "Slice the kernels off the cobs"
+      },
+      {
+        "number": 8,
+        "step": "Add the corn to the potatoes"
+      },
+      {
+        "number": 9,
+        "step": "Then add the grilled chicken"
+      },
+      {
+        "number": 10,
+        "step": "Add the vinaigrette"
+      },
+      {
+        "number": 11,
+        "step": "The toss to combine all of the ingredients"
+      }
+    ],
+    "nutrition": {
+      "calories": 247.81,
+      "protein": 12.89,
+      "carbs": 33.49,
+      "fat": 7.24
+    }
+  },
+  {
+    "id": 610952,
+    "title": "Crispy Buttermilk-herb fried chicken",
+    "image": "https://img.spoonacular.com/recipes/610952-556x370.jpg",
+    "readyInMinutes": 60,
+    "servings": 4,
+    "healthScore": 26,
+    "summary": "Crispy Buttermilk-herb fried chicken is a main course that serves 4. One portion of this dish contains roughly <b>42g of protein</b>, <b>18g of fat</b>, and a total of <b>491 calories</b>. For <b>$1.9 per serving</b>, this recipe <b>covers 30%</b> of your daily requirements of vitamins and minerals. It is a <b>rather cheap</b> recipe for fans of Southern food. Head to the store and pick up basil, chicken wings, pepper, and a few other things to make it today. It is brought to you by spoonacular user <a href=\"/profile/josculinaryjourney\">josculinaryjourney</a>. From preparation to the plate, this recipe takes approximately <b>1 hour</b>. <a href=\"https://spoonacular.com/recipes/crispy-buttermilk-herb-fried-chicken-1632345\">Crispy Buttermilk-herb fried chicken</a>, <a href=\"https://spoonacular.com/recipes/crispy-buttermilk-fried-chicken-640803\">Crispy Buttermilk Fried Chicken</a>, and <a href=\"https://spoonacular.com/recipes/crispy-buttermilk-fried-chicken-32074\">Crispy Buttermilk Fried Chicken</a> are very similar to this recipe.",
+    "cuisines": [
+      "Southern"
+    ],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 2044,
+        "name": "basil",
+        "amount": 1,
+        "unit": "tbsp",
+        "image": "fresh-basil.jpg",
+        "original": "1 tbsp dry basil"
+      },
+      {
+        "id": 18079,
+        "name": "bread crumbs",
+        "amount": 0.75,
+        "unit": "cup",
+        "image": "breadcrumbs.jpg",
+        "original": "3/4 cup fine dried bread crumbs"
+      },
+      {
+        "id": 1230,
+        "name": "buttermilk",
+        "amount": 1.5,
+        "unit": "cups",
+        "image": "buttermilk.jpg",
+        "original": "1 1/2 cups buttermilk"
+      },
+      {
+        "id": 1014582,
+        "name": "canola oil",
+        "amount": 4,
+        "unit": "servings",
+        "image": "vegetable-oil.jpg",
+        "original": "Canola oil for frying"
+      },
+      {
+        "id": 1045062,
+        "name": "chicken breast halves",
+        "amount": 2,
+        "unit": "",
+        "image": "chicken-breasts.png",
+        "original": "2 skinless chicken breast halves"
+      },
+      {
+        "id": 5100,
+        "name": "chicken wings",
+        "amount": 2,
+        "unit": "",
+        "image": "chicken-wings.png",
+        "original": "2 chicken wings"
+      },
+      {
+        "id": 2009,
+        "name": "chilly powder",
+        "amount": 3,
+        "unit": "tsp",
+        "image": "chili-powder.jpg",
+        "original": "3tsp chilly powder"
+      },
+      {
+        "id": 1123,
+        "name": "eggs",
+        "amount": 2,
+        "unit": "",
+        "image": "egg.png",
+        "original": "2 eggs"
+      },
+      {
+        "id": 20081,
+        "name": "flour",
+        "amount": 0.75,
+        "unit": "cup",
+        "image": "flour.png",
+        "original": "3/4 cup all-purpose flour"
+      },
+      {
+        "id": 10211215,
+        "name": "garlic cloves",
+        "amount": 2,
+        "unit": "",
+        "image": "garlic.jpg",
+        "original": "2 garlic cloves, minced"
+      },
+      {
+        "id": 2028,
+        "name": "paprika",
+        "amount": 1,
+        "unit": "tsp",
+        "image": "paprika.jpg",
+        "original": "1 tsp. paprika"
+      },
+      {
+        "id": 1002030,
+        "name": "pepper",
+        "amount": 0.5,
+        "unit": "tsp",
+        "image": "pepper.jpg",
+        "original": "1/2 tsp. freshly ground pepper"
+      },
+      {
+        "id": 2047,
+        "name": "salt",
+        "amount": 1,
+        "unit": "tsp",
+        "image": "salt.jpg",
+        "original": "1 tsp. salt"
+      },
+      {
+        "id": 5071,
+        "name": "chicken drumsticks",
+        "amount": 2,
+        "unit": "",
+        "image": "chicken-drumsticks.jpg",
+        "original": "2 skinless chicken drumsticks"
+      },
+      {
+        "id": 5096,
+        "name": "chicken thighs",
+        "amount": 2,
+        "unit": "",
+        "image": "chicken-thighs.png",
+        "original": "2 skinless chicken thighs"
+      },
+      {
+        "id": 10211297,
+        "name": "spring onions",
+        "amount": 2,
+        "unit": "Tbs",
+        "image": "parsley.jpg",
+        "original": "2 Tbs. chopped fresh flat-leaf parsley or spring onions"
+      },
+      {
+        "id": 2049,
+        "name": "thyme",
+        "amount": 1,
+        "unit": "tsp",
+        "image": "thyme.jpg",
+        "original": "1 tsp thyme"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "for instructions visit www.josculinaryjourney.blogspot.in"
+      }
+    ],
+    "nutrition": {
+      "calories": 491.09,
+      "protein": 41.5,
+      "carbs": 39.2,
+      "fat": 17.78
+    }
+  },
+  {
+    "id": 632778,
+    "title": "Artisan Farfalle Pasta With Smoked Salmon and Cream Sauce",
+    "image": "https://img.spoonacular.com/recipes/632778-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 2,
+    "healthScore": 34,
+    "summary": "Artisan Farfalle Pasta With Smoked Salmon and Cream Sauce might be just the main course you are searching for. This recipe makes 2 servings with <b>762 calories</b>, <b>28g of protein</b>, and <b>48g of fat</b> each. For <b>$6.5 per serving</b>, this recipe <b>covers 31%</b> of your daily requirements of vitamins and minerals. It is brought to you by Foodista. Only a few people made this recipe, and 3 would say it hit the spot. From preparation to the plate, this recipe takes approximately <b>45 minutes</b>. If you have chicken broth, artisan pasta, extra virgin oil, and a few other ingredients on hand, you can make it. Overall, this recipe earns a <b>pretty good spoonacular score of 78%</b>. Similar recipes include <a href=\"https://spoonacular.com/recipes/farfalle-pasta-with-smoked-salmon-and-cream-cheese-1233493\">Farfalle Pasta With Smoked Salmon And Cream Cheese</a>, <a href=\"https://spoonacular.com/recipes/farfalle-pasta-with-smoked-salmon-and-cream-cheese-30071\">Farfalle Pasta With Smoked Salmon And Cream Cheese</a>, and <a href=\"https://spoonacular.com/recipes/smoked-salmon-and-farfalle-in-lemon-cream-sauce-321798\">Smoked Salmon and Farfalle in Lemon Cream Sauce</a>.",
+    "cuisines": [],
+    "dishTypes": [
+      "side dish",
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 6194,
+        "name": "chicken broth",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "chicken-broth.png",
+        "original": "1/2 cup chicken broth"
+      },
+      {
+        "id": 1053,
+        "name": "5%% cooking cream",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "fluid-cream.jpg",
+        "original": "1/2 cup 15%% cooking cream (or 35%% cream)"
+      },
+      {
+        "id": 1034053,
+        "name": "extra virgin oil",
+        "amount": 3,
+        "unit": "tablespoons",
+        "image": "olive-oil.jpg",
+        "original": "3 tablespoons extra virgin oil"
+      },
+      {
+        "id": 20420,
+        "name": "artisan pasta",
+        "amount": 85,
+        "unit": "grams",
+        "image": "fusilli.jpg",
+        "original": "85 grams artisan pasta"
+      },
+      {
+        "id": 11677,
+        "name": "shallots",
+        "amount": 2,
+        "unit": "",
+        "image": "shallots.jpg",
+        "original": "2 shallots, chopped"
+      },
+      {
+        "id": 15077,
+        "name": "salmon",
+        "amount": 6,
+        "unit": "ounces",
+        "image": "smoked-salmon.png",
+        "original": "6 ounces smoked salmon cut into bite size pieces"
+      },
+      {
+        "id": 11955,
+        "name": "sun tomatoes",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "sundried-tomatoes.jpg",
+        "original": "1/2 cup sun dried tomatoes, cut into thin slices"
+      },
+      {
+        "id": 14106,
+        "name": "white wine",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "white-wine.jpg",
+        "original": "1/4 cup white wine"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "In a large pot of boiling salted water, add 85 grams of pasta and cook according to direction about 7 minutes."
+      },
+      {
+        "number": 2,
+        "step": "Heat the oil in a saute pan and add the chopped shallots. Cook until transparent, about 2 minutes."
+      },
+      {
+        "number": 3,
+        "step": "Add the wine and the chicken broth and continue to cook for an additional 3-4 minutes until the liquids reduce. Stir in the pesto and sun dried tomatoes."
+      },
+      {
+        "number": 4,
+        "step": "Add the salmon and cream and allow to heat through, about 1-2 minutes."
+      },
+      {
+        "number": 5,
+        "step": "Serve on the drained cooked pasta."
+      },
+      {
+        "number": 6,
+        "step": "Serves 2 main courses"
+      },
+      {
+        "number": 7,
+        "step": "In a large pot of boiling salted water, add 85 grams of pasta and cook according to direction about 7 minutes."
+      },
+      {
+        "number": 8,
+        "step": "Heat the oil in a saute pan and add the chopped shallots. Cook until transparent, about 2 minutes."
+      },
+      {
+        "number": 9,
+        "step": "Add the wine and the chicken broth and continue to cook for an additional 3-4 minutes until the liquids reduce.Stir in the pesto and sun dried tomatoes."
+      },
+      {
+        "number": 10,
+        "step": "Add the salmon and cream and allow to heat through, about 1-2 minutes."
+      },
+      {
+        "number": 11,
+        "step": "Serve on the drained cooked pasta."
+      }
+    ],
+    "nutrition": {
+      "calories": 762.2,
+      "protein": 27.68,
+      "carbs": 54.01,
+      "fat": 47.76
+    }
+  },
+  {
+    "id": 633953,
+    "title": "Balsamic Wheat & Chicken Salad",
+    "image": "https://img.spoonacular.com/recipes/633953-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 4,
+    "healthScore": 33,
+    "summary": "Balsamic Wheat & Chicken Salad is a main course that serves 4. Watching your figure? This gluten free and dairy free recipe has <b>473 calories</b>, <b>26g of protein</b>, and <b>8g of fat</b> per serving. For <b>$1.79 per serving</b>, this recipe <b>covers 26%</b> of your daily requirements of vitamins and minerals. 1 person has tried and liked this recipe. Head to the store and pick up wheat, onion, balsamic vinegrette salad dressing, and a few other things to make it today. From preparation to the plate, this recipe takes approximately <b>45 minutes</b>. It is brought to you by Foodista. All things considered, we decided this recipe <b>deserves a spoonacular score of 80%</b>. This score is spectacular. Try <a href=\"https://spoonacular.com/recipes/whole-wheat-pasta-salad-with-honey-basil-balsamic-vinaigrette-794407\">Whole Wheat Pasta Salad With Honey Basil Balsamic Vinaigrette</a>, <a href=\"https://spoonacular.com/recipes/whole-wheat-pasta-salad-with-beans-capers-balsamic-yogurt-dressing-584466\">Whole Wheat Pasta Salad with Beans, Capers & Balsamic Yogurt Dressing</a>, and <a href=\"https://spoonacular.com/recipes/whole-wheat-israeli-couscous-with-ratatouille-mozzarella-and-balsamic-vinaigrette-410376\">Whole Wheat Israeli Couscous with Ratatouille, Mozzarellan and Balsamic Vinaigrette</a> for similar recipes.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 20008,
+        "name": "wheat",
+        "amount": 2.5,
+        "unit": "cups",
+        "image": "raw-buckwheat.jpg",
+        "original": "2 1/2 cups cooked soft white wheat"
+      },
+      {
+        "id": 11282,
+        "name": "onion",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "brown-onion.png",
+        "original": "1/4 cup minced onion"
+      },
+      {
+        "id": 10211821,
+        "name": "bell pepper",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "bell-pepper-orange.png",
+        "original": "1/4 cup diced red pepper"
+      },
+      {
+        "id": 5062,
+        "name": "chicken breast",
+        "amount": 1,
+        "unit": "",
+        "image": "chicken-breasts.png",
+        "original": "1 boneless chicken breast, grilled or cooked, cubed"
+      },
+      {
+        "id": 4114,
+        "name": "balsamic vinegrette salad dressing",
+        "amount": 4.5,
+        "unit": "tablespoons",
+        "image": "italian-dressing.jpg",
+        "original": "4 1/2 tablespoons Balsamic Vinegrette Salad Dressing"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Mix wheat, onion, pepper and chicken together.  Chill  and pour dressing over when ready to serve."
+      }
+    ],
+    "nutrition": {
+      "calories": 473.07,
+      "protein": 26.34,
+      "carbs": 79.37,
+      "fat": 8.44
+    }
+  },
+  {
+    "id": 641975,
+    "title": "Easy Ginger Beef Broccoli",
+    "image": "https://img.spoonacular.com/recipes/641975-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 4,
+    "healthScore": 75,
+    "summary": "The recipe Easy Ginger Beef Broccoli can be made <b>in approximately 45 minutes</b>. This dairy free recipe serves 4 and costs <b>$2.14 per serving</b>. One portion of this dish contains about <b>49g of protein</b>, <b>12g of fat</b>, and a total of <b>386 calories</b>. It works well as a rather cheap main course. Head to the store and pick up sugar, chicken broth, garlic, and a few other things to make it today. 23 people found this recipe to be tasty and satisfying. It is brought to you by Foodista. All things considered, we decided this recipe <b>deserves a spoonacular score of 97%</b>. This score is awesome. If you like this recipe, take a look at these similar recipes: <a href=\"https://spoonacular.com/recipes/easy-ginger-beef-broccoli-1215371\">Easy Ginger Beef Broccoli</a>, <a href=\"https://spoonacular.com/recipes/easy-ginger-beef-broccoli-1229745\">Easy Ginger Beef Broccoli</a>, and <a href=\"https://spoonacular.com/recipes/easy-ginger-beef-broccoli-1228803\">Easy Ginger Beef Broccoli</a>.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 11090,
+        "name": "broccoli",
+        "amount": 4,
+        "unit": "cups",
+        "image": "broccoli.jpg",
+        "original": "4 cups broccoli, chopped"
+      },
+      {
+        "id": 5311,
+        "name": "chicken broth",
+        "amount": 10.5,
+        "unit": "ounce",
+        "image": "canned-food.png",
+        "original": "1 10.5-ounce can beef or chicken broth"
+      },
+      {
+        "id": 20081,
+        "name": "flour",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "flour.png",
+        "original": "1/4 cup flour"
+      },
+      {
+        "id": 10211216,
+        "name": "ginger",
+        "amount": 0.25,
+        "unit": "teaspoon",
+        "image": "ginger.png",
+        "original": "1/4 teaspoon fresh ginger, minced"
+      },
+      {
+        "id": 11215,
+        "name": "garlic",
+        "amount": 1,
+        "unit": "clove",
+        "image": "garlic.png",
+        "original": "1 clove garlic, minced"
+      },
+      {
+        "id": 23617,
+        "name": "round steak",
+        "amount": 1,
+        "unit": "pound",
+        "image": "round-steak.jpg",
+        "original": "1 pound boneless round steak, cut into bite size strips"
+      },
+      {
+        "id": 16124,
+        "name": "soy sauce",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "soy-sauce.jpg",
+        "original": "2 tablespoons soy sauce"
+      },
+      {
+        "id": 19335,
+        "name": "sugar",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "sugar-in-bowl.png",
+        "original": "2 tablespoons sugar"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "In a small bowl, combine flour, broth, sugar, and soy sauce. Stir until sugar and flour are dissolved.In a large skillet or wok over high heat, cook and stir beef 2 to 4 minutes, or until browned. Stir in broth mixture, ginger, garlic, and broccoli. Bring to a boil, then reduce heat. Simmer 5 to 10 minutes, or until sauce thickens.Excellent served over rice."
+      }
+    ],
+    "nutrition": {
+      "calories": 384.5,
+      "protein": 48.84,
+      "carbs": 19.22,
+      "fat": 11.88
+    }
+  },
+  {
+    "id": 638071,
+    "title": "Chicken En Papillote With Basil and Cherry Tomatoes",
+    "image": "https://img.spoonacular.com/recipes/638071-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 1,
+    "healthScore": 14,
+    "summary": "Chicken En Papillote With Basil and Cherry Tomatoes could be just the <b>gluten free, dairy free, paleolithic, and primal</b> recipe you've been looking for. For <b>$2.62 per serving</b>, this recipe <b>covers 18%</b> of your daily requirements of vitamins and minerals. One portion of this dish contains roughly <b>25g of protein</b>, <b>31g of fat</b>, and a total of <b>434 calories</b>. This recipe serves 1. 26 people found this recipe to be yummy and satisfying. A mixture of to 5 cherry tomatoes, basil, garnish: basil chiffonade, and a handful of other ingredients are all it takes to make this recipe so yummy. A couple people really liked this main course. From preparation to the plate, this recipe takes about <b>45 minutes</b>. It is brought to you by Foodista. Overall, this recipe earns a <b>solid spoonacular score of 67%</b>. If you like this recipe, you might also like recipes such as <a href=\"https://spoonacular.com/recipes/tilapia-en-papillote-with-cherry-tomatoes-peppers-olives-6920\">Tilapian En Papillote with Cherry Tomatoes, Peppers & Olives</a>, <a href=\"https://spoonacular.com/recipes/spaghetti-with-crab-cherry-tomatoes-basil-215647\">Spaghetti with crab, cherry tomatoes & basil</a>, and <a href=\"https://spoonacular.com/recipes/spaghetti-with-crab-cherry-tomatoes-basil-1318387\">Spaghetti with crab, cherry tomatoes & basil</a>.",
+    "cuisines": [],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 1055062,
+        "name": "chicken breast",
+        "amount": 1,
+        "unit": "",
+        "image": "chicken-breasts.png",
+        "original": "1 boneless chicken breast (with or skinless)"
+      },
+      {
+        "id": 1102047,
+        "name": "salt and pepper",
+        "amount": 1,
+        "unit": "serving",
+        "image": "salt-and-pepper.jpg",
+        "original": "salt and pepper, to taste"
+      },
+      {
+        "id": 4053,
+        "name": "olive oil",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "olive-oil.jpg",
+        "original": "2 tablespoons olive oil"
+      },
+      {
+        "id": 11282,
+        "name": "onion",
+        "amount": 0.25,
+        "unit": "cup",
+        "image": "brown-onion.png",
+        "original": "1/4 cup onion, sliced"
+      },
+      {
+        "id": 10211215,
+        "name": "garlic clove",
+        "amount": 1,
+        "unit": "",
+        "image": "garlic.jpg",
+        "original": "1 garlic clove, sliced"
+      },
+      {
+        "id": 14106,
+        "name": "white wine",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "white-wine.jpg",
+        "original": "2 tablespoons white wine"
+      },
+      {
+        "id": 10311529,
+        "name": "to 5 cherry tomatoes",
+        "amount": 4,
+        "unit": "",
+        "image": "cherry-tomatoes.png",
+        "original": "4 to 5 cherry tomatoes, halved"
+      },
+      {
+        "id": 2044,
+        "name": "basil",
+        "amount": 2,
+        "unit": "leaves",
+        "image": "fresh-basil.jpg",
+        "original": "2 leaves basil, chiffonade"
+      },
+      {
+        "id": 2044,
+        "name": "garnish: basil chiffonade",
+        "amount": 1,
+        "unit": "serving",
+        "image": "fresh-basil.jpg",
+        "original": "Garnish: fresh basil chiffonade"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Preheat oven to 400 degrees."
+      },
+      {
+        "number": 2,
+        "step": "Salt and pepper chicken and place on parchment sheet."
+      },
+      {
+        "number": 3,
+        "step": "Drizzle with olive oil."
+      },
+      {
+        "number": 4,
+        "step": "Add onion, garlic, white wine, cherry tomatoes and basil. Wrap parchment tightly around contents and secure into a package with kitchen twine."
+      },
+      {
+        "number": 5,
+        "step": "Place on cookie sheet."
+      },
+      {
+        "number": 6,
+        "step": "Place in oven for 35 to 40 minutes or until thermometer inserted into chicken reads 165 degrees. Unwrap package and serve hot, with a garnish of fresh basil chiffonade."
+      }
+    ],
+    "nutrition": {
+      "calories": 434.34,
+      "protein": 25.38,
+      "carbs": 8.32,
+      "fat": 31.08
+    }
+  },
+  {
+    "id": 642403,
+    "title": "Enchiladas Verdes (Green Enchiladas)",
+    "image": "https://img.spoonacular.com/recipes/642403-556x370.jpg",
+    "readyInMinutes": 45,
+    "servings": 6,
+    "healthScore": 14,
+    "summary": "Enchiladas Verdes (Green Enchiladas) might be just the <b>Mexican</b> recipe you are searching for. This recipe makes 6 servings with <b>471 calories</b>, <b>29g of protein</b>, and <b>20g of fat</b> each. For <b>$2.6 per serving</b>, this recipe <b>covers 22%</b> of your daily requirements of vitamins and minerals. 8 people found this recipe to be tasty and satisfying. From preparation to the plate, this recipe takes approximately <b>45 minutes</b>. A mixture of chicken breast, onion, canolan oil, and a handful of other ingredients are all it takes to make this recipe so flavorful. It is brought to you by Foodista. Only a few people really liked this main course. Overall, this recipe earns a <b>solid spoonacular score of 61%</b>. If you like this recipe, take a look at these similar recipes: <a href=\"https://spoonacular.com/recipes/enchiladas-verdes-con-pavo-green-chile-turkey-enchiladas-555668\">Enchiladas Verdes con Pavo (Green Chile Turkey Enchiladas)</a>, <a href=\"https://spoonacular.com/recipes/enchiladas-verdes-green-enchiladas-1282881\">Enchiladas Verdes (Green Enchiladas)</a>, and <a href=\"https://spoonacular.com/recipes/enchiladas-verdes-green-enchiladas-1772459\">Enchiladas Verdes (Green Enchiladas)</a>.",
+    "cuisines": [
+      "Mexican"
+    ],
+    "dishTypes": [
+      "lunch",
+      "main course",
+      "main dish",
+      "dinner"
+    ],
+    "ingredients": [
+      {
+        "id": 1055062,
+        "name": "chicken breast",
+        "amount": 1,
+        "unit": "pound",
+        "image": "chicken-breasts.png",
+        "original": "1 pound skinless, boneless chicken breast"
+      },
+      {
+        "id": 10031015,
+        "name": "anaheim chili peppers",
+        "amount": 12,
+        "unit": "",
+        "image": "chili-peppers-green.jpg",
+        "original": "12 Anaheim green chili peppers"
+      },
+      {
+        "id": 1014582,
+        "name": "canola oil",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "vegetable-oil.jpg",
+        "original": "1/2 cup canola oil for frying"
+      },
+      {
+        "id": 1230,
+        "name": "buttermilk can be used as a substitute",
+        "amount": 1,
+        "unit": "quart",
+        "image": "buttermilk.jpg",
+        "original": "1 quart Suero de Sal (whey) or buttermilk can be used as a substitute"
+      },
+      {
+        "id": 20081,
+        "name": "flour",
+        "amount": 2,
+        "unit": "tablespoons",
+        "image": "flour.png",
+        "original": "2 tablespoons flour"
+      },
+      {
+        "id": 10611282,
+        "name": "onion",
+        "amount": 1,
+        "unit": "medium",
+        "image": "white-onion.png",
+        "original": "1 medium white onion, diced"
+      },
+      {
+        "id": 18363,
+        "name": "corn tortillas",
+        "amount": 12,
+        "unit": "",
+        "image": "flour-tortilla.jpg",
+        "original": "12 to 18 corn tortillas, preferably white"
+      },
+      {
+        "id": 1011026,
+        "name": "cheese",
+        "amount": 1,
+        "unit": "cup",
+        "image": "cheddar-cheese.png",
+        "original": "1 cup white shredded cheese (Monterey Jack, Azadero or Muenster)"
+      },
+      {
+        "id": 1228,
+        "name": "queso fresco",
+        "amount": 0.25,
+        "unit": "",
+        "image": "camembert.png",
+        "original": "1/4 queso fresco, crumbled"
+      },
+      {
+        "id": 1056,
+        "name": "crema",
+        "amount": 0.5,
+        "unit": "cup",
+        "image": "sour-cream.jpg",
+        "original": "1/2 cup crema or sour cream (for sauce and topping)"
+      },
+      {
+        "id": 2047,
+        "name": "salt",
+        "amount": 6,
+        "unit": "servings",
+        "image": "salt.jpg",
+        "original": "Salt (to taste)"
+      },
+      {
+        "id": 14412,
+        "name": "water",
+        "amount": 6,
+        "unit": "servings",
+        "image": "water.png",
+        "original": "Water (if needed)"
+      }
+    ],
+    "instructions": [
+      {
+        "number": 1,
+        "step": "Roast Chili Peppers"
+      },
+      {
+        "number": 2,
+        "step": "Preheat broiler. Select firm, meaty peppers without wrinkles for roasting. Wash thoroughly."
+      },
+      {
+        "number": 3,
+        "step": "Place peppers evenly in a single layer on a foil-lined cookie sheet."
+      },
+      {
+        "number": 4,
+        "step": "Place under broiler. Watch them closely as the skin will blister and turn black within minutes. Turn the peppers after 5 minutes to blister all sides evenly. When done, the pepper skins should be evenly blistered and mostly black."
+      },
+      {
+        "number": 5,
+        "step": "Place roasted peppers in a plastic bag, cover with a kitchen towel and when cool, rub off blackened skin. Tear open and pull out the seed pod and stem."
+      },
+      {
+        "number": 6,
+        "step": "Sauce"
+      },
+      {
+        "number": 7,
+        "step": "In a blender combine the peppers, flour, and half of the suero or buttermilk and blend until creamy."
+      },
+      {
+        "number": 8,
+        "step": "Pour mixture into medium skillet and set over medium-low heat to warm."
+      },
+      {
+        "number": 9,
+        "step": "Add additional suero or buttermilk and stir. Taste and season with salt, usually about 2 teaspoons. If the sauce is too spicy, add  cup of crema or sour cream and stir. If the sauce is too thick, add water until desired consistency is reached."
+      },
+      {
+        "number": 10,
+        "step": "Chicken (Optional)"
+      },
+      {
+        "number": 11,
+        "step": "In a pot with enough water to cover, boil chicken breasts 25 minutes or until juices run clear."
+      },
+      {
+        "number": 12,
+        "step": "Drain, cool, and shred. Optional time-saver: shred a store bought rotisserie chicken."
+      },
+      {
+        "number": 13,
+        "step": "Stacked Style"
+      },
+      {
+        "number": 14,
+        "step": "Fry tortillas in hot oil until softened."
+      },
+      {
+        "number": 15,
+        "step": "Drain on paper towels. Soften tortillas by soaking in sauce one at a time."
+      },
+      {
+        "number": 16,
+        "step": "Place softened tortillas on individual serving plates."
+      },
+      {
+        "number": 17,
+        "step": "Layer with cooked chicken, cheese, and onion. Repeat process for a total of 3 tortillas for each serving."
+      },
+      {
+        "number": 18,
+        "step": "Oven Style"
+      },
+      {
+        "number": 19,
+        "step": "Preheat oven to 350 degrees."
+      },
+      {
+        "number": 20,
+        "step": "Spread 1 cup of the sauce in an ungreased 9-by-13-inch baking dish. Fry tortillas in hot oil just until softened."
+      },
+      {
+        "number": 21,
+        "step": "Drain on paper towels. Fill with cooked chicken, cheese, and onion."
+      },
+      {
+        "number": 22,
+        "step": "Roll, placing seam side down."
+      },
+      {
+        "number": 23,
+        "step": "Pour 2 cups of the sauce over enchiladas."
+      },
+      {
+        "number": 24,
+        "step": "Sprinkle with crumbled queso fresco and bake until warm, about 15 minutes."
+      },
+      {
+        "number": 25,
+        "step": "Serve with a dollop of crema or sour cream and your favorite side dish."
+      }
+    ],
+    "nutrition": {
+      "calories": 471.08,
+      "protein": 29.15,
+      "carbs": 43.28,
+      "fat": 20.34
+    }
+  }
+]
