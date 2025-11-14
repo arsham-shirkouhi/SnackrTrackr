@@ -16,16 +16,10 @@ import {
     List,
     Users,
     Apple,
-    Zap
+    Zap,
+    Target
 } from 'lucide-react'
 import { FoodLogEntry } from '../services/userTrackingService'
-import {
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell
-} from 'recharts'
 
 interface DailyLog {
     date: string
@@ -38,7 +32,7 @@ interface DailyLog {
 
 
 export const Dashboard: React.FC = () => {
-    const { user, userProfile, getFoodLogsByDate, logFoodItem, deleteFoodLogEntry } = useAuth()
+    const { user, getFoodLogsByDate, logFoodItem, deleteFoodLogEntry } = useAuth()
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
     const [selectedDateLog, setSelectedDateLog] = useState<DailyLog | null>(null)
     const [loading, setLoading] = useState(true)
@@ -642,83 +636,123 @@ export const Dashboard: React.FC = () => {
     const isToday = selectedDate === new Date().toISOString().split('T')[0]
     const weekDays = getWeekDays()
 
-    const calorieProgress = userProfile && userProfile.goals.dailyCalories > 0
-        ? (selectedDateLog?.calories || 0) / userProfile.goals.dailyCalories
-        : 0
-    const proteinProgress = userProfile && userProfile.goals.protein > 0
-        ? (selectedDateLog?.protein || 0) / userProfile.goals.protein
-        : 0
-    const carbsProgress = userProfile && userProfile.goals.carbs > 0
-        ? (selectedDateLog?.carbs || 0) / userProfile.goals.carbs
-        : 0
-    const fatProgress = userProfile && userProfile.goals.fat > 0
-        ? (selectedDateLog?.fat || 0) / userProfile.goals.fat
-        : 0
-
-    const macroData = [
-        { name: 'Protein', value: selectedDateLog?.protein || 0, color: '#3B82F6' },
-        { name: 'Carbs', value: selectedDateLog?.carbs || 0, color: '#10B981' },
-        { name: 'Fat', value: selectedDateLog?.fat || 0, color: '#F59E0B' },
-    ]
-
 
     return (
-        <div className="space-y-6">
-            {/* Compact Calendar */}
-            <div className="card py-3">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {isToday ? "Today" : selectedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </h3>
-                    {!isToday && (
-                        <button
-                            onClick={goToToday}
-                            className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                        >
-                            Today
-                        </button>
-                    )}
-                </div>
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={() => navigateWeek('prev')}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                        aria-label="Previous week"
-                    >
-                        <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <div className="flex-1 flex items-center gap-1 overflow-x-auto">
-                        {weekDays.map((day) => {
-                            const isSelected = day.dateStr === selectedDate
-                            const isDayToday = day.dateStr === new Date().toISOString().split('T')[0]
-                            return (
-                                <button
-                                    key={day.dateStr}
-                                    onClick={() => setSelectedDate(day.dateStr)}
-                                    className={`flex flex-col items-center justify-center p-1.5 rounded-md min-w-[40px] transition-all ${isSelected
-                                        ? 'bg-primary-600 text-white shadow-md'
-                                        : isDayToday
-                                            ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50'
-                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                        }`}
-                                >
-                                    <span className={`text-[10px] font-medium ${isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-                                        {day.dayName}
-                                    </span>
-                                    <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                                        {day.dayNum}
-                                    </span>
-                                </button>
-                            )
-                        })}
+        <div className="space-y-4">
+            {/* Calendar and Macro Cards Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Left: Daily Summary - Macro Cards */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="card p-3">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-1.5 bg-red-100 dark:bg-red-900/20 rounded-full flex-shrink-0">
+                                <Flame className="w-4 h-4 text-red-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Calories</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                                    {selectedDateLog?.calories || 0}
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <button
-                        onClick={() => navigateWeek('next')}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                        aria-label="Next week"
-                    >
-                        <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
+                    <div className="card p-3">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/20 rounded-full flex-shrink-0">
+                                <Target className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Protein</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                                    {(selectedDateLog?.protein || 0).toFixed(1)}g
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card p-3">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-full flex-shrink-0">
+                                <Zap className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Carbs</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                                    {(selectedDateLog?.carbs || 0).toFixed(1)}g
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card p-3">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex-shrink-0">
+                                <Apple className="w-4 h-4 text-yellow-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Fat</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                                    {(selectedDateLog?.fat || 0).toFixed(1)}g
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Calendar */}
+                <div className="card px-3 py-2.5">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                            {isToday ? "Today" : selectedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </h3>
+                        {!isToday && (
+                            <button
+                                onClick={goToToday}
+                                className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                            >
+                                Today
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => navigateWeek('prev')}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                            aria-label="Previous week"
+                        >
+                            <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <div className="flex-1 flex items-center gap-0.5 overflow-x-auto">
+                            {weekDays.map((day) => {
+                                const isSelected = day.dateStr === selectedDate
+                                const isDayToday = day.dateStr === new Date().toISOString().split('T')[0]
+                                return (
+                                    <button
+                                        key={day.dateStr}
+                                        onClick={() => setSelectedDate(day.dateStr)}
+                                        className={`flex flex-col items-center justify-center py-5 px-3 rounded-lg flex-1 transition-all ${isSelected
+                                            ? 'bg-primary-600 text-white shadow-md'
+                                            : isDayToday
+                                                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            }`}
+                                    >
+                                        <span className={`text-[10px] font-medium leading-tight ${isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                                            {day.dayName}
+                                        </span>
+                                        <span className={`text-sm font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                                            {day.dayNum}
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                        <button
+                            onClick={() => navigateWeek('next')}
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                            aria-label="Next week"
+                        >
+                            <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1067,164 +1101,6 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Macro Counter and Distribution - Side by Side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left: Calorie and Macronutrient Summary */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-black dark:border-gray-700 p-6">
-                    <div className="flex items-center gap-8">
-                        {/* Left: Circular Calorie Progress */}
-                        <div className="flex-shrink-0">
-                            <div className="relative w-48 h-48">
-                                <svg className="transform -rotate-90 w-48 h-48">
-                                    {/* Background circle */}
-                                    <circle
-                                        cx="96"
-                                        cy="96"
-                                        r="70"
-                                        fill="none"
-                                        stroke="#e5e7eb"
-                                        strokeWidth="16"
-                                        className="dark:stroke-gray-700"
-                                    />
-                                    {/* Progress circle - green */}
-                                    <circle
-                                        cx="96"
-                                        cy="96"
-                                        r="70"
-                                        fill="none"
-                                        stroke="#22c55e"
-                                        strokeWidth="16"
-                                        strokeDasharray={2 * Math.PI * 70}
-                                        strokeDashoffset={2 * Math.PI * 70 * (1 - Math.min(calorieProgress, 1))}
-                                        strokeLinecap="round"
-                                        className="transition-all duration-300"
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-4xl font-bold text-black dark:text-white">
-                                        {selectedDateLog?.calories || 0}
-                                    </span>
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-1">
-                                        kcal consumed
-                                    </span>
-                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-500 mt-0.5">
-                                        {Math.max(0, Math.round((userProfile?.goals.dailyCalories || 2000) - (selectedDateLog?.calories || 0)))} left
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right: Macronutrient Progress Bars */}
-                        <div className="flex-1 space-y-4">
-                            {/* Protein */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm font-bold text-black dark:text-white lowercase">protein</span>
-                                    <span className="text-xs font-bold text-black dark:text-white">
-                                        {selectedDateLog?.protein || 0}g / {userProfile?.goals.protein || 150}g
-                                    </span>
-                                </div>
-                                <div className="w-full h-3 bg-white dark:bg-gray-700 rounded-full overflow-hidden border-2 border-black dark:border-gray-600">
-                                    <div
-                                        className="h-full bg-red-600 rounded-full transition-all duration-300"
-                                        style={{ width: `${Math.min(proteinProgress * 100, 100)}%` }}
-                                    />
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    {Math.max(0, Math.round((userProfile?.goals.protein || 150) - (selectedDateLog?.protein || 0)))}g left
-                                </div>
-                            </div>
-
-                            {/* Carbs */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm font-bold text-black dark:text-white lowercase">carbs</span>
-                                    <span className="text-xs font-bold text-black dark:text-white">
-                                        {selectedDateLog?.carbs || 0}g / {userProfile?.goals.carbs || 200}g
-                                    </span>
-                                </div>
-                                <div className="w-full h-3 bg-white dark:bg-gray-700 rounded-full overflow-hidden border-2 border-black dark:border-gray-600">
-                                    <div
-                                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                                        style={{ width: `${Math.min(carbsProgress * 100, 100)}%` }}
-                                    />
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    {Math.max(0, Math.round((userProfile?.goals.carbs || 200) - (selectedDateLog?.carbs || 0)))}g left
-                                </div>
-                            </div>
-
-                            {/* Fats */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm font-bold text-black dark:text-white lowercase">fats</span>
-                                    <span className="text-xs font-bold text-black dark:text-white">
-                                        {selectedDateLog?.fat || 0}g / {userProfile?.goals.fat || 65}g
-                                    </span>
-                                </div>
-                                <div className="w-full h-3 bg-white dark:bg-gray-700 rounded-full overflow-hidden border-2 border-black dark:border-gray-600">
-                                    <div
-                                        className="h-full bg-orange-500 rounded-full transition-all duration-300"
-                                        style={{ width: `${Math.min(fatProgress * 100, 100)}%` }}
-                                    />
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    {Math.max(0, Math.round((userProfile?.goals.fat || 65) - (selectedDateLog?.fat || 0)))}g left
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right: Macro Distribution */}
-                <div className="card">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        {isToday ? "Today's Macro Distribution" : 'Macro Distribution'}
-                    </h3>
-                    <div className="flex items-center gap-6">
-                        {/* Left: Chart */}
-                        <div className="flex-shrink-0" style={{ width: '200px', height: '200px' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={macroData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={50}
-                                        outerRadius={90}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {macroData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* Right: Legend */}
-                        <div className="flex-1 space-y-3">
-                            {macroData.map((macro) => (
-                                <div key={macro.name} className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                        <div
-                                            className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: macro.color }}
-                                        />
-                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                            {macro.name}
-                                        </span>
-                                    </div>
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                        {macro.value}g
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
 
 
 
