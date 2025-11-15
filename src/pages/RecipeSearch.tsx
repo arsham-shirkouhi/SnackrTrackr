@@ -85,7 +85,7 @@ export const RecipeSearch: React.FC = () => {
     const [loadingRecipeDetails, setLoadingRecipeDetails] = useState(false)
     const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast')
 
-    const recipesPerPage = 100
+    const recipesPerPage = 9
     const [error, setError] = useState<string | null>(null)
     const THEMEALDB_API_KEY = '1' // Free test key from TheMealDB
     const [apiSource, setApiSource] = useState<'themealdb' | 'spoonacular'>('themealdb')
@@ -355,6 +355,7 @@ export const RecipeSearch: React.FC = () => {
                     query: query,
                     number: recipesPerPage.toString(),
                     offset: (page * recipesPerPage).toString(),
+                    addRecipeInformation: 'true',
                     apiKey: SPOONACULAR_API_KEY
                 })
 
@@ -446,7 +447,7 @@ export const RecipeSearch: React.FC = () => {
             } else {
                 // Random/initial load with Spoonacular
                 const searchResponse = await fetch(
-                    `https://api.spoonacular.com/recipes/complexSearch?query=healthy&number=100&apiKey=${SPOONACULAR_API_KEY}`
+                    `https://api.spoonacular.com/recipes/complexSearch?query=healthy&number=100&addRecipeInformation=true&apiKey=${SPOONACULAR_API_KEY}`
                 )
 
                 if (!searchResponse.ok) {
@@ -533,21 +534,21 @@ export const RecipeSearch: React.FC = () => {
         }
     }
 
-    // Load random recipes on component mount (TheMealDB primary, Spoonacular fallback)
+    // Load random recipes on component mount (Spoonacular primary, TheMealDB fallback)
     const loadRandomRecipes = async () => {
         setLoading(true)
         setError(null)
 
         try {
-            // Try TheMealDB first (primary)
-            await loadTheMealDBRecipes()
+            // Try Spoonacular first (primary)
+            await loadSpoonacularRecipes()
         } catch (error: any) {
-            console.error('Error loading TheMealDB recipes, trying Spoonacular fallback:', error)
-            // If TheMealDB fails, try Spoonacular as fallback
+            console.error('Error loading Spoonacular recipes, trying TheMealDB fallback:', error)
+            // If Spoonacular fails, try TheMealDB as fallback
             try {
-                await loadSpoonacularRecipes()
-            } catch (spoonError: any) {
-                console.error('Both APIs failed:', spoonError)
+                await loadTheMealDBRecipes()
+            } catch (mealDbError: any) {
+                console.error('Both APIs failed:', mealDbError)
                 setError('Failed to load recipes. Please try again later.')
                 setLoading(false)
             }
@@ -580,7 +581,7 @@ export const RecipeSearch: React.FC = () => {
         }
     }, []) // Empty dependency array - only run once on mount
 
-    // Search recipes (TheMealDB primary, Spoonacular fallback)
+    // Search recipes (Spoonacular primary, TheMealDB fallback)
     const searchRecipes = async (page: number = 0, resetResults: boolean = true) => {
         if (!searchQuery || searchQuery.length < 2) {
             if (resetResults) {
@@ -594,15 +595,15 @@ export const RecipeSearch: React.FC = () => {
         setLoading(true)
 
         try {
-            // Try TheMealDB first (primary)
-            await loadTheMealDBRecipes(searchQuery, !resetResults)
+            // Try Spoonacular first (primary)
+            await loadSpoonacularRecipes(searchQuery, page, !resetResults)
         } catch (error: any) {
-            console.error('Error searching TheMealDB, trying Spoonacular fallback:', error)
-            // If TheMealDB fails, try Spoonacular as fallback
+            console.error('Error searching Spoonacular, trying TheMealDB fallback:', error)
+            // If Spoonacular fails, try TheMealDB as fallback
             try {
-                await loadSpoonacularRecipes(searchQuery, page, !resetResults)
-            } catch (spoonError: any) {
-                console.error('Both APIs failed:', spoonError)
+                await loadTheMealDBRecipes(searchQuery, !resetResults)
+            } catch (mealDbError: any) {
+                console.error('Both APIs failed:', mealDbError)
                 setError('Failed to search recipes. Please try again.')
                 setLoading(false)
             }
@@ -643,7 +644,64 @@ export const RecipeSearch: React.FC = () => {
     const fetchRecipeDetails = async (recipeId: number) => {
         setLoadingRecipeDetails(true)
         try {
-            // Always fetch full details from TheMealDB (even if using basic data from filter)
+            // Try Spoonacular first if we have API key
+            const SPOONACULAR_API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY
+            if (SPOONACULAR_API_KEY && apiSource === 'spoonacular') {
+                try {
+                    const response = await fetch(
+                        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${SPOONACULAR_API_KEY}&includeNutrition=true`
+                    )
+
+                    if (response.ok) {
+                        const data = await response.json()
+
+                        // Format recipe details
+                        const recipeDetails: RecipeDetails = {
+                            id: data.id,
+                            title: data.title,
+                            image: data.image,
+                            readyInMinutes: data.readyInMinutes,
+                            servings: data.servings,
+                            healthScore: data.healthScore,
+                            summary: data.summary,
+                            cuisines: data.cuisines || [],
+                            dishTypes: data.dishTypes || [],
+                            ingredients: data.extendedIngredients?.map((ing: any) => ({
+                                id: ing.id,
+                                name: ing.name,
+                                amount: ing.amount,
+                                unit: ing.unit,
+                                image: ing.image,
+                                original: ing.original
+                            })) || [],
+                            instructions: data.analyzedInstructions?.[0]?.steps?.map((step: any) => ({
+                                number: step.number,
+                                step: step.step
+                            })) || [],
+                            nutrition: data.nutrition ? {
+                                calories: data.nutrition.nutrients?.find((n: any) => n.name === 'Calories')?.amount || 0,
+                                protein: data.nutrition.nutrients?.find((n: any) => n.name === 'Protein')?.amount || 0,
+                                carbs: data.nutrition.nutrients?.find((n: any) => n.name === 'Carbohydrates')?.amount || 0,
+                                fat: data.nutrition.nutrients?.find((n: any) => n.name === 'Fat')?.amount || 0
+                            } : {
+                                calories: 0,
+                                protein: 0,
+                                carbs: 0,
+                                fat: 0
+                            }
+                        }
+
+                        setSelectedRecipeDetails(recipeDetails)
+                        setShowRecipePreview(true)
+                        setLoadingRecipeDetails(false)
+                        return
+                    }
+                } catch (spoonError) {
+                    console.error('Error fetching from Spoonacular, trying TheMealDB:', spoonError)
+                }
+            }
+
+            // If Spoonacular doesn't work, try TheMealDB
             const details = await fetchTheMealDBDetails(recipeId)
             if (details) {
                 setSelectedRecipeDetails(details)
@@ -652,58 +710,7 @@ export const RecipeSearch: React.FC = () => {
                 return
             }
 
-            // If TheMealDB doesn't work, try Spoonacular (only if we have API key)
-            const SPOONACULAR_API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY
-            if (SPOONACULAR_API_KEY && apiSource === 'spoonacular') {
-                const response = await fetch(
-                    `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${SPOONACULAR_API_KEY}&includeNutrition=true`
-                )
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch recipe details: ${response.status}`)
-                }
-
-                const data = await response.json()
-
-                // Format recipe details
-                const recipeDetails: RecipeDetails = {
-                    id: data.id,
-                    title: data.title,
-                    image: data.image,
-                    readyInMinutes: data.readyInMinutes,
-                    servings: data.servings,
-                    healthScore: data.healthScore,
-                    summary: data.summary,
-                    cuisines: data.cuisines || [],
-                    dishTypes: data.dishTypes || [],
-                    ingredients: data.extendedIngredients?.map((ing: any) => ({
-                        id: ing.id,
-                        name: ing.name,
-                        amount: ing.amount,
-                        unit: ing.unit,
-                        image: ing.image,
-                        original: ing.original
-                    })) || [],
-                    instructions: data.analyzedInstructions?.[0]?.steps?.map((step: any) => ({
-                        number: step.number,
-                        step: step.step
-                    })) || [],
-                    nutrition: data.nutrition ? {
-                        calories: data.nutrition.nutrients?.find((n: any) => n.name === 'Calories')?.amount || 0,
-                        protein: data.nutrition.nutrients?.find((n: any) => n.name === 'Protein')?.amount || 0,
-                        carbs: data.nutrition.nutrients?.find((n: any) => n.name === 'Carbohydrates')?.amount || 0,
-                        fat: data.nutrition.nutrients?.find((n: any) => n.name === 'Fat')?.amount || 0
-                    } : {
-                        calories: 0,
-                        protein: 0,
-                        carbs: 0,
-                        fat: 0
-                    }
-                }
-
-                setSelectedRecipeDetails(recipeDetails)
-                setShowRecipePreview(true)
-            }
+            throw new Error('Failed to fetch recipe details from both APIs')
         } catch (error) {
             console.error('Error fetching recipe details:', error)
             setError('Failed to load recipe details. Please try again.')
@@ -775,7 +782,57 @@ export const RecipeSearch: React.FC = () => {
     const loadMoreRecipes = async () => {
         setLoading(true)
 
-        if (apiSource === 'themealdb') {
+        if (apiSource === 'spoonacular') {
+            // For Spoonacular, use pagination
+            const nextPage = currentPage + 1
+            setCurrentPage(nextPage)
+            try {
+                await loadSpoonacularRecipes(searchQuery || undefined, nextPage, true)
+            } catch (error: any) {
+                console.error('Error loading more from Spoonacular, trying TheMealDB:', error)
+                // Fallback to TheMealDB
+                try {
+                    const categories = ['Beef', 'Chicken', 'Dessert', 'Lamb', 'Miscellaneous', 'Pasta', 'Pork', 'Seafood', 'Side', 'Starter', 'Vegan', 'Vegetarian', 'Breakfast', 'Goat']
+                    const remainingCategories = categories.slice(5) // Categories not used in initial load (first 5 were used)
+
+                    if (remainingCategories.length > 0) {
+                        const selectedCategories = remainingCategories.slice(0, 5)
+                        const categoryPromises = selectedCategories.map(category =>
+                            fetch(`https://www.themealdb.com/api/json/v1/${THEMEALDB_API_KEY}/filter.php?c=${encodeURIComponent(category)}`)
+                                .then(res => res.json())
+                                .then(data => (data.meals || []).map((meal: any) => ({
+                                    ...meal,
+                                    strCategory: category,
+                                    idMeal: meal.idMeal,
+                                    strMeal: meal.strMeal,
+                                    strMealThumb: meal.strMealThumb
+                                })))
+                                .catch(() => [])
+                        )
+
+                        const categoryResults = await Promise.all(categoryPromises)
+                        const newMeals = categoryResults.flat().slice(0, 100)
+
+                        // Remove duplicates
+                        const transformedRecipes = newMeals.map(transformTheMealDBMeal).filter(Boolean)
+                        setRecipes((prev) => {
+                            const existingIds = new Set(prev.map(r => r.id))
+                            const uniqueNew = transformedRecipes.filter(r => !existingIds.has(r.id))
+                            return [...prev, ...uniqueNew]
+                        })
+                        setTotalResults((prev) => {
+                            const existingIds = new Set(recipes.map(r => r.id))
+                            const uniqueNew = transformedRecipes.filter(r => !existingIds.has(r.id))
+                            return prev + uniqueNew.length
+                        })
+                    } else {
+                        setError('No more recipes available to load.')
+                    }
+                } catch (mealDbError: any) {
+                    setError('Failed to load more recipes. Please try again.')
+                }
+            }
+        } else {
             // For TheMealDB, load more recipes from additional categories
             // Use filter endpoint directly (no individual lookups to avoid rate limits)
             try {
@@ -816,24 +873,7 @@ export const RecipeSearch: React.FC = () => {
                     setError('No more recipes available to load.')
                 }
             } catch (error: any) {
-                console.error('Error loading more from TheMealDB, trying Spoonacular:', error)
-                // Fallback to Spoonacular
-                const nextPage = currentPage + 1
-                setCurrentPage(nextPage)
-                try {
-                    await loadSpoonacularRecipes(searchQuery || undefined, nextPage, true)
-                } catch (spoonError: any) {
-                    setError('Failed to load more recipes. Please try again.')
-                }
-            }
-        } else {
-            // For Spoonacular, use pagination
-            const nextPage = currentPage + 1
-            setCurrentPage(nextPage)
-            try {
-                await loadSpoonacularRecipes(searchQuery || undefined, nextPage, true)
-            } catch (error: any) {
-                console.error('Error loading more from Spoonacular:', error)
+                console.error('Error loading more from TheMealDB:', error)
                 setError('Failed to load more recipes. Please try again.')
             }
         }
@@ -1053,17 +1093,10 @@ export const RecipeSearch: React.FC = () => {
             )}
 
             {/* API Source Notice */}
-            {apiSource === 'spoonacular' && (
-                <div className="card bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                    <p className="text-blue-600 dark:text-blue-400">
-                        <strong>Note:</strong> Using Spoonacular as fallback API. TheMealDB is currently unavailable.
-                    </p>
-                </div>
-            )}
             {apiSource === 'themealdb' && (
-                <div className="card bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                    <p className="text-green-600 dark:text-green-400">
-                        <strong>Note:</strong> Some recipes may not include nutrition info. You can manually add nutrition values when logging meals.
+                <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                    <p className="text-yellow-600 dark:text-yellow-400">
+                        <strong>Note:</strong> Using TheMealDB as fallback API. Spoonacular is currently unavailable. Some recipes may not include nutrition info.
                     </p>
                 </div>
             )}
@@ -1110,7 +1143,7 @@ export const RecipeSearch: React.FC = () => {
                                             />
                                             <div className="absolute top-2 left-2">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getHealthScoreColor(recipe.healthScore)}`}>
-                                                    Health: {recipe.healthScore}/10
+                                                    Health: {recipe.healthScore}/100
                                                 </span>
                                             </div>
                                         </div>
@@ -1258,7 +1291,7 @@ export const RecipeSearch: React.FC = () => {
                                                 </span>
                                                 {selectedRecipeDetails.healthScore > 0 && (
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${getHealthScoreColor(selectedRecipeDetails.healthScore)}`}>
-                                                        Health Score: {selectedRecipeDetails.healthScore}/10
+                                                        Health Score: {selectedRecipeDetails.healthScore}/100
                                                     </span>
                                                 )}
                                             </div>
