@@ -81,6 +81,32 @@ export interface UserTrackingDefaults {
     updatedAt: Timestamp
 }
 
+// Interface for favorite recipes
+export interface FavoriteRecipe {
+    id: string
+    userId: string
+    title: string
+    description: string
+    prepTime: number
+    cookTime: number
+    servings: number
+    difficulty: 'Easy' | 'Medium' | 'Hard'
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    ingredients: {
+        name: string
+        amount: string
+        unit: string
+    }[]
+    instructions: string[]
+    tags: string[]
+    tips: string[]
+    createdAt: Timestamp
+    updatedAt: Timestamp
+}
+
 // Default values for new users - all set to 0
 const DEFAULT_TRACKING_VALUES = {
     caloriesConsumed: 0,
@@ -760,6 +786,89 @@ class UserTrackingService {
         } catch (error) {
             console.error('Error getting food logs by meal type:', error)
             throw error
+        }
+    }
+
+    // Favorite Recipes Methods
+    async saveFavoriteRecipe(userId: string, recipe: Omit<FavoriteRecipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
+        try {
+            const favoritesRef = collection(db, 'favoriteRecipes')
+            const now = Timestamp.now()
+
+            const favoriteRecipe: Omit<FavoriteRecipe, 'id'> = {
+                userId,
+                ...recipe,
+                createdAt: now,
+                updatedAt: now
+            }
+
+            const docRef = await addDoc(favoritesRef, favoriteRecipe)
+            console.log('Favorite recipe saved for user:', userId)
+            return docRef.id
+        } catch (error) {
+            console.error('Error saving favorite recipe:', error)
+            throw error
+        }
+    }
+
+    async getFavoriteRecipes(userId: string): Promise<FavoriteRecipe[]> {
+        try {
+            const favoritesRef = collection(db, 'favoriteRecipes')
+            // Query without orderBy first to avoid composite index requirement
+            const q = query(
+                favoritesRef,
+                where('userId', '==', userId)
+            )
+
+            const querySnapshot = await getDocs(q)
+            const favorites: FavoriteRecipe[] = []
+
+            querySnapshot.forEach((doc) => {
+                favorites.push({
+                    id: doc.id,
+                    ...doc.data()
+                } as FavoriteRecipe)
+            })
+
+            // Sort in memory by createdAt descending
+            favorites.sort((a, b) => {
+                const aTime = a.createdAt?.toMillis() || 0
+                const bTime = b.createdAt?.toMillis() || 0
+                return bTime - aTime
+            })
+
+            return favorites
+        } catch (error) {
+            console.error('Error getting favorite recipes:', error)
+            throw error
+        }
+    }
+
+    async deleteFavoriteRecipe(favoriteId: string): Promise<void> {
+        try {
+            const favoriteRef = doc(db, 'favoriteRecipes', favoriteId)
+            await deleteDoc(favoriteRef)
+            console.log('Favorite recipe deleted:', favoriteId)
+        } catch (error) {
+            console.error('Error deleting favorite recipe:', error)
+            throw error
+        }
+    }
+
+    async isRecipeFavorite(userId: string, recipeTitle: string): Promise<boolean> {
+        try {
+            const favoritesRef = collection(db, 'favoriteRecipes')
+            const q = query(
+                favoritesRef,
+                where('userId', '==', userId),
+                where('title', '==', recipeTitle)
+            )
+
+            const querySnapshot = await getDocs(q)
+            return !querySnapshot.empty
+        } catch (error) {
+            console.error('Error checking if recipe is favorite:', error)
+            return false
         }
     }
 }

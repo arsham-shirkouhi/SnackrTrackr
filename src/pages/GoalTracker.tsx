@@ -10,8 +10,7 @@ import {
     Save,
     Edit3,
     CheckCircle,
-    AlertCircle,
-    Trophy
+    AlertCircle
 } from 'lucide-react'
 import {
     LineChart,
@@ -541,67 +540,67 @@ export const GoalTracker: React.FC = () => {
             {/* Goals Overview */}
             {goals.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {goals.map((goal) => {
-                    const progress = getProgressPercentage(goal.current, goal.target)
-                    const status = getProgressStatus(goal.current, goal.target, goal.type)
+                    {goals.map((goal) => {
+                        const progress = getProgressPercentage(goal.current, goal.target)
+                        const status = getProgressStatus(goal.current, goal.target, goal.type)
 
-                    return (
-                        <div key={goal.id} className="card">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                    <div className={`p-2 rounded-full ${getGoalColor(goal.type)}`}>
-                                        {getGoalIcon(goal.type)}
+                        return (
+                            <div key={goal.id} className="card">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`p-2 rounded-full ${getGoalColor(goal.type)}`}>
+                                            {getGoalIcon(goal.type)}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                                                {getGoalTypeLabel(goal.type)}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                {goal.current.toFixed(1)} / {goal.target} {goal.unit}
+                                            </p>
+                                        </div>
                                     </div>
+                                    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                                        {getStatusIcon(status)}
+                                        <span className="capitalize">{status.replace('-', ' ')}</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                                            {getGoalTypeLabel(goal.type)}
-                                        </h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            {goal.current.toFixed(1)} / {goal.target} {goal.unit}
-                                        </p>
+                                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                            <span>Progress</span>
+                                            <span>{progress.toFixed(1)}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div
+                                                className={`h-2 rounded-full transition-all duration-300 ${status === 'excellent' ? 'bg-green-500' :
+                                                    status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
+                                                    }`}
+                                                style={{ width: `${Math.min(progress, 100)}%` }}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-                                    {getStatusIcon(status)}
-                                    <span className="capitalize">{status.replace('-', ' ')}</span>
+
+                                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                        <span>Started: {goal.startDate.toLocaleDateString()}</span>
+                                        <span>Target: {goal.endDate.toLocaleDateString()}</span>
+                                    </div>
+
+                                    {isEditingGoals && (
+                                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                                            <button
+                                                onClick={() => deleteGoal(goal.id)}
+                                                className="w-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-xs px-3 py-1 rounded-lg transition-colors"
+                                            >
+                                                Remove Goal
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-
-                            <div className="space-y-3">
-                                <div>
-                                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                        <span>Progress</span>
-                                        <span>{progress.toFixed(1)}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div
-                                            className={`h-2 rounded-full transition-all duration-300 ${status === 'excellent' ? 'bg-green-500' :
-                                                status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
-                                                }`}
-                                            style={{ width: `${Math.min(progress, 100)}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                                    <span>Started: {goal.startDate.toLocaleDateString()}</span>
-                                    <span>Target: {goal.endDate.toLocaleDateString()}</span>
-                                </div>
-
-                                {isEditingGoals && (
-                                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <button
-                                            onClick={() => deleteGoal(goal.id)}
-                                            className="w-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-xs px-3 py-1 rounded-lg transition-colors"
-                                        >
-                                            Remove Goal
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })}
                 </div>
             )}
 
@@ -661,163 +660,113 @@ export const GoalTracker: React.FC = () => {
 
             {/* Progress Charts */}
             {goals.length > 0 && weeklyProgress.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* This Week's Calories */}
-                <div className="card">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        This Week's Calories
-                    </h3>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={dailyCalories}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="day" />
-                                <YAxis />
-                                <Tooltip />
-                                <Line
-                                    type="monotone"
-                                    dataKey="calories"
-                                    stroke="#ef4444"
-                                    strokeWidth={2}
-                                    name="Calories"
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Weight Progress */}
-                <div className="card">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Weight Progress
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* This Week's Calories */}
+                    <div className="card">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            This Week's Calories
                         </h3>
-                        <button
-                            onClick={() => setIsUpdatingWeight(!isUpdatingWeight)}
-                            className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                        >
-                            {isUpdatingWeight ? 'Cancel' : 'Update Weight'}
-                        </button>
-                    </div>
-
-                    {/* Success Message */}
-                    {weightUpdateSuccess && (
-                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center space-x-2">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                            <span className="text-sm text-green-700 dark:text-green-400">
-                                Weight updated successfully!
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Update Weight Form */}
-                    {isUpdatingWeight && (
-                        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Current Weight (kg)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={newWeight}
-                                        onChange={(e) => setNewWeight(e.target.value)}
-                                        className="input-field"
-                                        placeholder="Enter your current weight"
-                                        min="0"
-                                        step="0.1"
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={dailyCalories}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="calories"
+                                        stroke="#ef4444"
+                                        strokeWidth={2}
+                                        name="Calories"
                                     />
-                                </div>
-                                <div className="flex items-end">
-                                    <button
-                                        onClick={handleUpdateWeight}
-                                        disabled={!newWeight}
-                                        className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        <span>Save</span>
-                                    </button>
-                                </div>
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Weight Progress */}
+                    <div className="card">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Weight Progress
+                            </h3>
+                            <button
+                                onClick={() => setIsUpdatingWeight(!isUpdatingWeight)}
+                                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                            >
+                                {isUpdatingWeight ? 'Cancel' : 'Update Weight'}
+                            </button>
+                        </div>
+
+                        {/* Success Message */}
+                        {weightUpdateSuccess && (
+                            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center space-x-2">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <span className="text-sm text-green-700 dark:text-green-400">
+                                    Weight updated successfully!
+                                </span>
                             </div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                {todayTrackingData?.weight
-                                    ? `Current recorded weight: ${todayTrackingData.weight.toFixed(1)} kg`
-                                    : `Target weight: ${userProfile?.weight.toFixed(1) || 0} kg`
-                                }
-                            </p>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={weeklyProgress}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="week" />
-                                <YAxis />
-                                <Tooltip />
-                                <Area
-                                    type="monotone"
-                                    dataKey="weight"
-                                    stroke="#8b5cf6"
-                                    fill="#8b5cf6"
-                                    fillOpacity={0.3}
-                                    name="Weight (kg)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
-            )}
+                        {/* Update Weight Form */}
+                        {isUpdatingWeight && (
+                            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Current Weight (kg)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={newWeight}
+                                            onChange={(e) => setNewWeight(e.target.value)}
+                                            className="input-field"
+                                            placeholder="Enter your current weight"
+                                            min="0"
+                                            step="0.1"
+                                        />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button
+                                            onClick={handleUpdateWeight}
+                                            disabled={!newWeight}
+                                            className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            <span>Save</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    {todayTrackingData?.weight
+                                        ? `Current recorded weight: ${todayTrackingData.weight.toFixed(1)} kg`
+                                        : `Target weight: ${userProfile?.weight.toFixed(1) || 0} kg`
+                                    }
+                                </p>
+                            </div>
+                        )}
 
-            {/* Achievements */}
-            {goals.length > 0 && (
-            <div className="card">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Recent Achievements
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
-                            <Trophy className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p className="font-medium text-green-900 dark:text-green-300">
-                                Calorie Goal Met
-                            </p>
-                            <p className="text-sm text-green-600 dark:text-green-400">
-                                Hit your daily calorie target 5 days in a row
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                            <Target className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                            <p className="font-medium text-blue-900 dark:text-blue-300">
-                                Protein Champion
-                            </p>
-                            <p className="text-sm text-blue-600 dark:text-blue-400">
-                                Exceeded protein goal 3 days this week
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                            <Award className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                            <p className="font-medium text-purple-900 dark:text-purple-300">
-                                Consistency King
-                            </p>
-                            <p className="text-sm text-purple-600 dark:text-purple-400">
-                                Logged meals for 7 consecutive days
-                            </p>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={weeklyProgress}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="week" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="weight"
+                                        stroke="#8b5cf6"
+                                        fill="#8b5cf6"
+                                        fillOpacity={0.3}
+                                        name="Weight (kg)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
-            </div>
             )}
         </div>
     )

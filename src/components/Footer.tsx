@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
                         <ul className="space-y-2 text-sm text-gray-400">
                             <li><Link to="/" className="hover:text-white transition-colors">Dashboard</Link></li>
                             <li><Link to="/recipes" className="hover:text-white transition-colors">Recipe Search</Link></li>
-                            <li><Link to="/ai-recipes" className="hover:text-white transition-colors">AI Recipes</Link></li>
+                            <li><Link to="/ai-recipes" className="hover:text-white transition-colors">Recipe Creator</Link></li>
                             <li><Link to="/goals" className="hover:text-white transition-colors">Goal Setting</Link></li>
                         </ul>
                     </div>
@@ -46,6 +46,7 @@ export const Footer: React.FC = () => {
                     <div>
                         <h3 className="font-semibold mb-4">Support</h3>
                         <ul className="space-y-2 text-sm text-gray-400">
+                            <li><Link to="/account" className="hover:text-white transition-colors">Account</Link></li>
                             <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                             <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
                             <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>

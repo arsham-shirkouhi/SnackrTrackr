@@ -18,7 +18,8 @@ import {
     Apple,
     Zap
 } from 'lucide-react'
-import { FoodLogEntry } from '../services/userTrackingService'
+import { FoodLogEntry, userTrackingService } from '../services/userTrackingService'
+import { Heart } from 'lucide-react'
 
 interface DailyLog {
     date: string
@@ -42,10 +43,12 @@ export const Dashboard: React.FC = () => {
 
     // Add meal modal states
     const [searchQuery, setSearchQuery] = useState('')
-    const [searchMode, setSearchMode] = useState<'recipes' | 'manual'>('recipes')
+    const [searchMode, setSearchMode] = useState<'recipes' | 'manual' | 'favorites'>('recipes')
     const [recipeResults, setRecipeResults] = useState<any[]>([])
     const [searchLoading, setSearchLoading] = useState(false)
     const [searchError, setSearchError] = useState<string | null>(null)
+    const [favoriteRecipes, setFavoriteRecipes] = useState<any[]>([])
+    const [favoritesLoading, setFavoritesLoading] = useState(false)
 
     // Recipe preview modal states
     const [selectedRecipeDetails, setSelectedRecipeDetails] = useState<any>(null)
@@ -186,6 +189,47 @@ export const Dashboard: React.FC = () => {
 
         return () => clearTimeout(timeoutId)
     }, [searchQuery, searchMode, selectedMealType, isAddingMeal])
+
+    // Load favorites when favorites tab is selected
+    useEffect(() => {
+        const loadFavorites = async () => {
+            if (searchMode === 'favorites' && (isAddingMeal || editingMeal) && user) {
+                setFavoritesLoading(true)
+                try {
+                    const favorites = await userTrackingService.getFavoriteRecipes(user.uid)
+                    // Convert favorites to recipe format for display
+                    const formattedFavorites = favorites.map(fav => ({
+                        id: fav.id,
+                        title: fav.title,
+                        description: fav.description,
+                        readyInMinutes: fav.prepTime + fav.cookTime,
+                        servings: fav.servings,
+                        nutrition: {
+                            calories: fav.calories,
+                            protein: fav.protein,
+                            carbs: fav.carbs,
+                            fat: fav.fat
+                        },
+                        ingredients: fav.ingredients,
+                        instructions: fav.instructions,
+                        tags: fav.tags,
+                        tips: fav.tips,
+                        difficulty: fav.difficulty,
+                        isFavorite: true
+                    }))
+                    setFavoriteRecipes(formattedFavorites)
+                } catch (error) {
+                    console.error('Error loading favorites:', error)
+                    setSearchError('Failed to load favorites. Please try again.')
+                } finally {
+                    setFavoritesLoading(false)
+                }
+            } else if (searchMode !== 'favorites') {
+                setFavoriteRecipes([])
+            }
+        }
+        loadFavorites()
+    }, [searchMode, isAddingMeal, editingMeal, user])
 
     // Fetch data for selected date
     useEffect(() => {
@@ -444,7 +488,34 @@ export const Dashboard: React.FC = () => {
     }
 
     const openRecipePreview = (recipe: any) => {
-        fetchRecipeDetails(recipe.id)
+        // If it's a favorite recipe (has ingredients/instructions), show it directly
+        if (recipe.ingredients && recipe.instructions) {
+            const recipeDetails = {
+                id: recipe.id,
+                title: recipe.title,
+                description: recipe.description,
+                readyInMinutes: recipe.readyInMinutes,
+                servings: recipe.servings,
+                ingredients: recipe.ingredients.map((ing: any) => ({
+                    name: ing.name,
+                    amount: ing.amount,
+                    unit: ing.unit,
+                    original: `${ing.amount} ${ing.unit} ${ing.name}`
+                })),
+                instructions: recipe.instructions.map((inst: string, index: number) => ({
+                    number: index + 1,
+                    step: inst
+                })),
+                nutrition: recipe.nutrition,
+                tags: recipe.tags,
+                tips: recipe.tips
+            }
+            setSelectedRecipeDetails(recipeDetails)
+            setShowRecipePreview(true)
+        } else {
+            // Regular Spoonacular recipe
+            fetchRecipeDetails(recipe.id)
+        }
     }
 
     const closeRecipePreview = () => {
@@ -457,11 +528,28 @@ export const Dashboard: React.FC = () => {
         if (!user) return
 
         try {
-            // Calculate nutrition per serving
-            const caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
-            const proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
-            const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
-            const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
+            // Check if this is a favorite recipe (already has per-serving values)
+            // vs Spoonacular recipe (has total nutrition that needs to be divided)
+            const isFavoriteRecipe = recipe.isFavorite === true
+
+            let caloriesPerServing: number
+            let proteinPerServing: number
+            let carbsPerServing: number
+            let fatPerServing: number
+
+            if (isFavoriteRecipe) {
+                // Favorite recipes already have per-serving values, use them directly
+                caloriesPerServing = Math.round(recipe.nutrition.calories)
+                proteinPerServing = Math.round(recipe.nutrition.protein)
+                carbsPerServing = Math.round(recipe.nutrition.carbs)
+                fatPerServing = Math.round(recipe.nutrition.fat)
+            } else {
+                // Spoonacular recipes have total nutrition, divide by servings
+                caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
+                proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
+                carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
+                fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
+            }
 
             // Store recipeId in servingSize for later retrieval: "RECIPE_ID:123|actual serving size"
             const servingSize = `RECIPE_ID:${recipe.id}|${recipe.title} (1 serving of ${recipe.servings})`
@@ -701,6 +789,25 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-4 animate-fadeIn">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                        Dashboard
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                        Track your daily nutrition and meals
+                    </p>
+                </div>
+                <button
+                    onClick={openAddMealModal}
+                    className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2"
+                >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Meal</span>
+                </button>
+            </div>
+
             {/* Calendar and Macro Cards Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-slideUp">
                 {/* Left: Daily Summary - Macro Cards */}
@@ -822,18 +929,9 @@ export const Dashboard: React.FC = () => {
 
             {/* Today's Meals - Show First */}
             <div id="meals-section" className="space-y-6 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {isToday ? "Today's Meals" : `Meals for ${selectedDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
-                    </h3>
-                    <button
-                        onClick={openAddMealModal}
-                        className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span>Add Meal</span>
-                    </button>
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {isToday ? "Today's Meals" : `Meals for ${selectedDateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
+                </h3>
 
                 {/* Meals List - Organized by Meal Type */}
                 <div className="space-y-6">
@@ -943,7 +1041,7 @@ export const Dashboard: React.FC = () => {
                     }}
                 >
                     <div
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
@@ -997,6 +1095,16 @@ export const Dashboard: React.FC = () => {
                                             }`}
                                     >
                                         Search Recipes
+                                    </button>
+                                    <button
+                                        onClick={() => setSearchMode('favorites')}
+                                        className={`px-4 py-2 text-sm font-medium transition-colors flex items-center space-x-1 ${searchMode === 'favorites'
+                                            ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                            }`}
+                                    >
+                                        <Heart className="w-4 h-4" />
+                                        <span>Favorites</span>
                                     </button>
                                     <button
                                         onClick={() => setSearchMode('manual')}
@@ -1107,6 +1215,92 @@ export const Dashboard: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* Favorites */}
+                            {searchMode === 'favorites' && (
+                                <div>
+                                    <div className="mt-2 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 p-2 space-y-2">
+                                        {favoritesLoading ? (
+                                            <div className="p-4 text-center">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                                    Loading favorites...
+                                                </p>
+                                            </div>
+                                        ) : searchError ? (
+                                            <div className="p-4 text-center">
+                                                <p className="text-sm text-red-600 dark:text-red-400">{searchError}</p>
+                                            </div>
+                                        ) : favoriteRecipes.length === 0 ? (
+                                            <div className="p-4 text-center">
+                                                <Heart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    No favorite recipes yet. Create and favorite recipes in the Recipe Creator!
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {favoriteRecipes.map((recipe: any) => {
+                                                    const caloriesPerServing = Math.round(recipe.nutrition.calories)
+                                                    const proteinPerServing = Math.round(recipe.nutrition.protein)
+                                                    const carbsPerServing = Math.round(recipe.nutrition.carbs)
+                                                    const fatPerServing = Math.round(recipe.nutrition.fat)
+
+                                                    return (
+                                                        <div
+                                                            key={recipe.id}
+                                                            className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+                                                        >
+                                                            <div className="relative flex items-center justify-between">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center space-x-2 mb-2">
+                                                                        <Heart className="w-4 h-4 text-red-500 fill-current" />
+                                                                        <h4 className="font-semibold text-lg text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                                            {recipe.title}
+                                                                        </h4>
+                                                                    </div>
+                                                                    {recipe.description && (
+                                                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                                                            {recipe.description}
+                                                                        </p>
+                                                                    )}
+                                                                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                                                                        <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full font-medium">
+                                                                            <Flame className="w-3.5 h-3.5" />
+                                                                            <span>{caloriesPerServing} cal</span>
+                                                                        </span>
+                                                                        <span className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full font-medium">P: {proteinPerServing}g</span>
+                                                                        <span className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full font-medium">C: {carbsPerServing}g</span>
+                                                                        <span className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-full font-medium">F: {fatPerServing}g</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2 ml-4">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            openRecipePreview(recipe)
+                                                                        }}
+                                                                        className="p-2.5 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:scale-110"
+                                                                        title="View recipe details"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => addRecipeAsMeal(recipe)}
+                                                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200"
+                                                                    >
+                                                                        Add
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Manual Entry */}
                             {searchMode === 'manual' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1204,7 +1398,7 @@ export const Dashboard: React.FC = () => {
                         onClick={closeRecipePreview}
                     >
                         <div
-                            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
