@@ -559,27 +559,28 @@ export const RecipeSearch: React.FC = () => {
     const initialLoadRef = useRef(false)
 
     // Load random recipes on component mount - only once
-    useEffect(() => {
-        // Prevent multiple loads (especially in React StrictMode)
-        if (initialLoadRef.current) {
-            return
-        }
+    // DISABLED: Don't load recipes until user searches
+    // useEffect(() => {
+    //     // Prevent multiple loads (especially in React StrictMode)
+    //     if (initialLoadRef.current) {
+    //         return
+    //     }
 
-        initialLoadRef.current = true
-        let mounted = true
+    //     initialLoadRef.current = true
+    //     let mounted = true
 
-        const loadInitial = async () => {
-            if (mounted && initialLoadRef.current) {
-                await loadRandomRecipes()
-            }
-        }
+    //     const loadInitial = async () => {
+    //         if (mounted && initialLoadRef.current) {
+    //             await loadRandomRecipes()
+    //         }
+    //     }
 
-        loadInitial()
+    //     loadInitial()
 
-        return () => {
-            mounted = false
-        }
-    }, []) // Empty dependency array - only run once on mount
+    //     return () => {
+    //         mounted = false
+    //     }
+    // }, []) // Empty dependency array - only run once on mount
 
     // Search recipes (Spoonacular primary, TheMealDB fallback)
     const searchRecipes = async (page: number = 0, resetResults: boolean = true) => {
@@ -1105,7 +1106,7 @@ export const RecipeSearch: React.FC = () => {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {loading && recipes.length === 0 ? 'Loading recipes...' : loading ? 'Loading more...' : totalResults > 0 ? `Found ${totalResults} recipes` : searchQuery && searchQuery.length >= 2 ? 'No recipes found' : recipes.length > 0 ? `Showing ${recipes.length} recipes` : 'Loading recipes...'}
+                        {loading && recipes.length === 0 ? 'Loading recipes...' : loading ? 'Loading more...' : totalResults > 0 ? `Found ${totalResults} recipes` : searchQuery && searchQuery.length >= 2 ? 'No recipes found' : recipes.length > 0 ? `Showing ${recipes.length} recipes` : 'Search for recipes to get started'}
                     </h2>
                     {totalResults > 0 && (
                         <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -1123,6 +1124,16 @@ export const RecipeSearch: React.FC = () => {
                                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                             </div>
                         ))}
+                    </div>
+                ) : recipes.length === 0 && !searchQuery ? (
+                    <div className="card text-center py-12">
+                        <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            Ready to discover amazing recipes?
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Start by typing in the search box above to find recipes that match your taste and nutrition goals.
+                        </p>
                     </div>
                 ) : (
                     <>
