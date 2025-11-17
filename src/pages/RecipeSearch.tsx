@@ -6,15 +6,13 @@ import {
     Users,
     BookOpen,
     Flame,
-    Target,
-    Zap,
-    Apple,
     Eye,
     List,
     ChevronRight,
     X
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { getTodayDateString } from '../utils/dateUtils'
 
 interface Recipe {
     id: number
@@ -78,6 +76,7 @@ export const RecipeSearch: React.FC = () => {
         healthScore: ''
     })
     const [showFilters, setShowFilters] = useState(false)
+    const [hasSearched, setHasSearched] = useState(false)
 
     // Recipe details modal states
     const [selectedRecipeDetails, setSelectedRecipeDetails] = useState<RecipeDetails | null>(null)
@@ -592,6 +591,11 @@ export const RecipeSearch: React.FC = () => {
             return
         }
 
+        // Mark that a search has been performed
+        if (resetResults) {
+            setHasSearched(true)
+        }
+
         setError(null)
         setLoading(true)
 
@@ -752,7 +756,7 @@ export const RecipeSearch: React.FC = () => {
                 : 0
 
             const servingSize = `${recipe.title} (1 serving of ${recipe.servings})`
-            const today = new Date().toISOString().split('T')[0]
+            const today = getTodayDateString()
 
             if (apiSource === 'themealdb' && caloriesPerServing === 0) {
                 const confirmAdd = confirm(
@@ -911,7 +915,7 @@ export const RecipeSearch: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
+            {/* Header - Always visible */}
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                     Recipe Search
@@ -938,13 +942,15 @@ export const RecipeSearch: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex space-x-2">
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`btn-secondary flex items-center space-x-2 ${showFilters ? 'bg-primary-100 dark:bg-primary-900/20' : ''}`}
-                        >
-                            <Filter className="w-4 h-4" />
-                            <span>Filters</span>
-                        </button>
+                        {hasSearched && (
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={`btn-secondary flex items-center space-x-2 ${showFilters ? 'bg-primary-100 dark:bg-primary-900/20' : ''}`}
+                            >
+                                <Filter className="w-4 h-4" />
+                                <span>Filters</span>
+                            </button>
+                        )}
                         <button
                             onClick={handleManualSearch}
                             disabled={loading || !searchQuery || searchQuery.length < 2}
@@ -956,9 +962,9 @@ export const RecipeSearch: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Advanced Filters */}
-                {showFilters && (
-                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                {/* Advanced Filters - Only show after search */}
+                {showFilters && hasSearched && (
+                    <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fadeIn">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1086,176 +1092,183 @@ export const RecipeSearch: React.FC = () => {
                 )}
             </div>
 
-            {/* Error Message */}
-            {error && (
-                <div className="card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            {/* Error Message - Only show after search */}
+            {error && hasSearched && (
+                <div className="card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 animate-fadeIn">
                     <p className="text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
 
-            {/* API Source Notice */}
-            {apiSource === 'themealdb' && (
-                <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+            {/* API Source Notice - Only show after search */}
+            {apiSource === 'themealdb' && hasSearched && (
+                <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 animate-fadeIn">
                     <p className="text-yellow-600 dark:text-yellow-400">
                         <strong>Note:</strong> Using TheMealDB as fallback API. Spoonacular is currently unavailable. Some recipes may not include nutrition info.
                     </p>
                 </div>
             )}
 
-            {/* Results */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {loading && recipes.length === 0 ? 'Loading recipes...' : loading ? 'Loading more...' : totalResults > 0 ? `Found ${totalResults} recipes` : searchQuery && searchQuery.length >= 2 ? 'No recipes found' : recipes.length > 0 ? `Showing ${recipes.length} recipes` : 'Search for recipes to get started'}
-                    </h2>
-                    {totalResults > 0 && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                            Showing {recipes.length} of {totalResults}
+            {/* Results - Only show after search */}
+            {hasSearched && (
+                <div className="space-y-4 animate-slideUp">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            {loading && recipes.length === 0 ? 'Loading recipes...' : loading ? 'Loading more...' : totalResults > 0 ? `Found ${totalResults} recipes` : searchQuery && searchQuery.length >= 2 ? 'No recipes found' : recipes.length > 0 ? `Showing ${recipes.length} recipes` : 'Search for recipes to get started'}
+                        </h2>
+                        {totalResults > 0 && (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                Showing {recipes.length} of {totalResults}
+                            </div>
+                        )}
+                    </div>
+
+                    {loading && recipes.length === 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="card animate-pulse">
+                                    <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                </div>
+                            ))}
                         </div>
+                    ) : recipes.length === 0 && !searchQuery ? (
+                        <div className="card text-center py-12">
+                            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                Ready to discover amazing recipes?
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                Start by typing in the search box above to find recipes that match your taste and nutrition goals.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {recipes.map((recipe, index) => {
+                                    const caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
+                                    const proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
+                                    const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
+                                    const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
+
+                                    return (
+                                        <div
+                                            key={recipe.id}
+                                            className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-primary-300 dark:hover:border-primary-600 animate-slideUp flex flex-col h-full"
+                                            style={{ animationDelay: `${Math.min(index * 0.1, 1)}s` }}
+                                        >
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                            <div className="relative flex flex-col flex-1">
+                                                {/* Recipe Image */}
+                                                <div className="relative mb-4 rounded-lg overflow-hidden">
+                                                    <img
+                                                        src={recipe.image || 'https://via.placeholder.com/400x300?text=No+Image'}
+                                                        alt={recipe.title}
+                                                        className="w-full h-48 object-cover"
+                                                    />
+                                                </div>
+
+                                                {/* Recipe Title */}
+                                                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
+                                                    {recipe.title}
+                                                </h3>
+
+                                                {/* Recipe Meta Info */}
+                                                <div className="flex flex-wrap items-center gap-3 text-sm mb-3">
+                                                    <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                                                        <Clock className="w-3.5 h-3.5" />
+                                                        <span>{recipe.readyInMinutes} min</span>
+                                                    </span>
+                                                    <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                                                        <Users className="w-3.5 h-3.5" />
+                                                        <span>{recipe.servings} servings</span>
+                                                    </span>
+                                                    {recipe.cuisines && recipe.cuisines.length > 0 && (
+                                                        <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${getCuisineColor(recipe.cuisines[0])}`}>
+                                                            {recipe.cuisines[0]}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Nutrition Info - Matching Dashboard Style */}
+                                                <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+                                                    <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full font-medium">
+                                                        <Flame className="w-3.5 h-3.5" />
+                                                        <span>{caloriesPerServing} cal</span>
+                                                    </span>
+                                                    <span className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full font-medium">P: {proteinPerServing}g</span>
+                                                    <span className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full font-medium">C: {carbsPerServing}g</span>
+                                                    <span className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-full font-medium">F: {fatPerServing}g</span>
+                                                </div>
+
+                                                {/* Spacer to push buttons to bottom */}
+                                                <div className="flex-1"></div>
+
+                                                {/* Action Buttons - Equal width, stuck to bottom */}
+                                                <div className="flex items-center space-x-2 mt-auto">
+                                                    <button
+                                                        onClick={() => openRecipePreview(recipe)}
+                                                        className="flex-1 btn-secondary flex items-center justify-center space-x-2 py-2.5"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        <span>View</span>
+                                                    </button>
+                                                    {user ? (
+                                                        <button
+                                                            onClick={() => addRecipeToMealLog(recipe)}
+                                                            className="flex-1 btn-primary flex items-center justify-center space-x-2 py-2.5"
+                                                        >
+                                                            <BookOpen className="w-4 h-4" />
+                                                            <span>Add</span>
+                                                        </button>
+                                                    ) : (
+                                                        <div className="flex-1"></div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Load More Button */}
+                            {hasMore && !loading && (
+                                <div className="flex justify-center mt-6">
+                                    <button
+                                        onClick={loadMoreRecipes}
+                                        className="btn-primary flex items-center space-x-2"
+                                    >
+                                        <span>Load More Recipes</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {loading && recipes.length > 0 && (
+                                <div className="flex justify-center mt-6">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
+            )}
 
-                {loading && recipes.length === 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[...Array(6)].map((_, i) => (
-                            <div key={i} className="card animate-pulse">
-                                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
-                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                            </div>
-                        ))}
-                    </div>
-                ) : recipes.length === 0 && !searchQuery ? (
-                    <div className="card text-center py-12">
-                        <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            {/* Initial Empty State - Only show before search */}
+            {!hasSearched && (
+                <div className="flex items-center justify-center min-h-[50vh]">
+                    <div className="text-center animate-fadeIn">
+                        <Search className="w-24 h-24 text-gray-300 dark:text-gray-600 mx-auto mb-6" />
+                        <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                             Ready to discover amazing recipes?
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                             Start by typing in the search box above to find recipes that match your taste and nutrition goals.
                         </p>
                     </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {recipes.map((recipe) => {
-                                const caloriesPerServing = Math.round(recipe.nutrition.calories / recipe.servings)
-                                const proteinPerServing = Math.round(recipe.nutrition.protein / recipe.servings)
-                                const carbsPerServing = Math.round(recipe.nutrition.carbs / recipe.servings)
-                                const fatPerServing = Math.round(recipe.nutrition.fat / recipe.servings)
-
-                                return (
-                                    <div key={recipe.id} className="card hover:shadow-lg transition-shadow duration-200">
-                                        <div className="relative">
-                                            <img
-                                                src={recipe.image || 'https://via.placeholder.com/400x300?text=No+Image'}
-                                                alt={recipe.title}
-                                                className="w-full h-48 object-cover rounded-lg mb-4"
-                                            />
-                                            <div className="absolute top-2 left-2">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getHealthScoreColor(recipe.healthScore)}`}>
-                                                    Health: {recipe.healthScore}/100
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
-                                                {recipe.title}
-                                            </h3>
-
-                                            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                                                <div className="flex items-center space-x-1">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>{recipe.readyInMinutes} min</span>
-                                                </div>
-                                                <div className="flex items-center space-x-1">
-                                                    <Users className="w-4 h-4" />
-                                                    <span>{recipe.servings} servings</span>
-                                                </div>
-                                            </div>
-
-                                            {recipe.cuisines && recipe.cuisines.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {recipe.cuisines.map((cuisine) => (
-                                                        <span
-                                                            key={cuisine}
-                                                            className={`px-2 py-1 rounded-full text-xs font-medium ${getCuisineColor(cuisine)}`}
-                                                        >
-                                                            {cuisine}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            <div className="grid grid-cols-4 gap-2 text-center">
-                                                <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">
-                                                    <Flame className="w-4 h-4 text-red-600 dark:text-red-400 mx-auto mb-1" />
-                                                    <p className="text-xs font-medium text-red-600 dark:text-red-400">{caloriesPerServing}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">cal</p>
-                                                </div>
-                                                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
-                                                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                                                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400">{proteinPerServing}g</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">protein</p>
-                                                </div>
-                                                <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
-                                                    <Zap className="w-4 h-4 text-green-600 dark:text-green-400 mx-auto mb-1" />
-                                                    <p className="text-xs font-medium text-green-600 dark:text-green-400">{carbsPerServing}g</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">carbs</p>
-                                                </div>
-                                                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-lg">
-                                                    <Apple className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mx-auto mb-1" />
-                                                    <p className="text-xs font-medium text-yellow-600 dark:text-yellow-400">{fatPerServing}g</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">fat</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => openRecipePreview(recipe)}
-                                                    className="flex-1 btn-secondary flex items-center justify-center space-x-2"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    <span>View Details</span>
-                                                </button>
-                                                {user && (
-                                                    <button
-                                                        onClick={() => addRecipeToMealLog(recipe)}
-                                                        className="btn-primary flex items-center space-x-2"
-                                                    >
-                                                        <BookOpen className="w-4 h-4" />
-                                                        <span>Add</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* Load More Button */}
-                        {hasMore && !loading && (
-                            <div className="flex justify-center mt-6">
-                                <button
-                                    onClick={loadMoreRecipes}
-                                    className="btn-primary flex items-center space-x-2"
-                                >
-                                    <span>Load More Recipes</span>
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        )}
-
-                        {loading && recipes.length > 0 && (
-                            <div className="flex justify-center mt-6">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Recipe Preview Modal */}
             {showRecipePreview && selectedRecipeDetails && (

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { FoodLogEntry, userTrackingService } from '../services/userTrackingService'
 import { Heart } from 'lucide-react'
+import { getLocalDateString, getTodayDateString } from '../utils/dateUtils'
 
 interface DailyLog {
     date: string
@@ -33,7 +34,7 @@ interface DailyLog {
 
 export const Dashboard: React.FC = () => {
     const { user, userProfile, getFoodLogsByDate, logFoodItem, deleteFoodLogEntry } = useAuth()
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
+    const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString())
     const [selectedDateLog, setSelectedDateLog] = useState<DailyLog | null>(null)
     const [loading, setLoading] = useState(true)
     const [selectedDateMeals, setSelectedDateMeals] = useState<FoodLogEntry[]>([])
@@ -296,7 +297,7 @@ export const Dashboard: React.FC = () => {
                 for (let i = 0; i < 7; i++) {
                     const currentDate = new Date(startDate)
                     currentDate.setDate(startDate.getDate() + i)
-                    const dateStr = currentDate.toISOString().split('T')[0]
+                    const dateStr = getLocalDateString(currentDate)
                     const dateFoodLogs = await getFoodLogsByDate(dateStr)
                     const totalCalories = dateFoodLogs.reduce((sum, log) => sum + log.calories, 0)
                     caloriesMap[dateStr] = totalCalories
@@ -333,7 +334,7 @@ export const Dashboard: React.FC = () => {
         for (let i = 0; i < 7; i++) {
             const currentDate = new Date(startDate)
             currentDate.setDate(startDate.getDate() + i)
-            const dateStr = currentDate.toISOString().split('T')[0]
+            const dateStr = getLocalDateString(currentDate)
             const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
             const dayIndex = currentDate.getDay()
             days.push({
@@ -350,11 +351,11 @@ export const Dashboard: React.FC = () => {
         const currentDate = new Date(selectedDate)
         const daysToAdd = direction === 'next' ? 7 : -7
         currentDate.setDate(currentDate.getDate() + daysToAdd)
-        setSelectedDate(currentDate.toISOString().split('T')[0])
+        setSelectedDate(getLocalDateString(currentDate))
     }
 
     const goToToday = () => {
-        setSelectedDate(new Date().toISOString().split('T')[0])
+        setSelectedDate(getTodayDateString())
     }
 
     // Meal editing functions
@@ -783,7 +784,7 @@ export const Dashboard: React.FC = () => {
     }
 
     const selectedDateObj = new Date(selectedDate)
-    const isToday = selectedDate === new Date().toISOString().split('T')[0]
+    const isToday = selectedDate === getTodayDateString()
     const weekDays = getWeekDays()
 
 
@@ -876,7 +877,7 @@ export const Dashboard: React.FC = () => {
                         <div className="flex-1 flex items-center gap-[15px] overflow-x-auto">
                             {weekDays.map((day) => {
                                 const isSelected = day.dateStr === selectedDate
-                                const isDayToday = day.dateStr === new Date().toISOString().split('T')[0]
+                                const isDayToday = day.dateStr === getTodayDateString()
                                 const dayCalories = weekCalories[day.dateStr] || 0
                                 const dailyGoal = userProfile?.goals?.dailyCalories || 1
                                 const fillPercentage = Math.min((dayCalories / dailyGoal) * 100, 100)

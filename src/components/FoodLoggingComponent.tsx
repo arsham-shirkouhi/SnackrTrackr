@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { FoodLogEntry } from '../services/userTrackingService'
+import { getTodayDateString } from '../utils/dateUtils'
 
 const FoodLoggingComponent: React.FC = () => {
     const {
@@ -21,7 +22,7 @@ const FoodLoggingComponent: React.FC = () => {
     const [fat, setFat] = useState(0)
     const [servingSize, setServingSize] = useState('')
     const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast')
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+    const [selectedDate, setSelectedDate] = useState(getTodayDateString())
     const [foodLogs, setFoodLogs] = useState<FoodLogEntry[]>([])
     const [loading, setLoading] = useState(false)
 

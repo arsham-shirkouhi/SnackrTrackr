@@ -13,6 +13,7 @@ import {
     Timestamp
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { getTodayDateString } from '../utils/dateUtils'
 
 // Interface for daily tracking data
 export interface DailyTrackingData {
@@ -135,9 +136,9 @@ const DEFAULT_USER_GOALS = {
 }
 
 class UserTrackingService {
-    // Get today's date in YYYY-MM-DD format
+    // Get today's date in YYYY-MM-DD format (using local timezone)
     private getTodayDateString(): string {
-        return new Date().toISOString().split('T')[0]
+        return getTodayDateString()
     }
 
     // Create or get user's default tracking goals
@@ -401,10 +402,16 @@ class UserTrackingService {
     }
 
     // Update weight
-    async updateWeight(userId: string, weight: number): Promise<void> {
+    async updateWeight(userId: string, weight: number, date?: string): Promise<void> {
         try {
-            await this.updateTodayTrackingData(userId, { weight })
-            console.log('Weight updated for user:', userId)
+            if (date) {
+                // Update weight for a specific date
+                await this.updateTrackingDataByDate(userId, date, { weight })
+            } else {
+                // Update weight for today
+                await this.updateTodayTrackingData(userId, { weight })
+            }
+            console.log('Weight updated for user:', userId, date ? `on ${date}` : 'today')
         } catch (error) {
             console.error('Error updating weight:', error)
             throw error

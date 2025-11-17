@@ -23,6 +23,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts'
+import { getLocalDateString, getTodayDateString } from '../utils/dateUtils'
 
 interface Goal {
     id: string
@@ -40,6 +41,7 @@ interface WeeklyProgress {
     calories: number
     protein: number
     weight: number
+    weekStartDate?: string // Store the actual week start date for editing
 }
 
 interface DailyCalories {
@@ -61,7 +63,9 @@ export const GoalTracker: React.FC = () => {
     })
     const [isUpdatingWeight, setIsUpdatingWeight] = useState(false)
     const [newWeight, setNewWeight] = useState('')
+    const [selectedWeightDate, setSelectedWeightDate] = useState<string | null>(null)
     const [weightUpdateSuccess, setWeightUpdateSuccess] = useState(false)
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
 
     // Fetch goals and progress from Firebase
     useEffect(() => {
@@ -150,26 +154,27 @@ export const GoalTracker: React.FC = () => {
 
                 setGoals(userGoals)
 
-                // Fetch last 4 weeks of data for weekly progress
+                // Fetch last 12 weeks of data for weekly progress (3 months)
                 const today = new Date()
-                const fourWeeksAgo = new Date(today)
-                fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28) // 4 weeks ago
-                const startDate = fourWeeksAgo.toISOString().split('T')[0]
-                const endDate = today.toISOString().split('T')[0]
+                const twelveWeeksAgo = new Date(today)
+                twelveWeeksAgo.setDate(today.getDate() - 84) // 12 weeks ago
+                const startDate = getLocalDateString(twelveWeeksAgo)
+                const endDate = getTodayDateString()
 
                 const trackingData = await getTrackingDataRange(startDate, endDate)
 
                 // Group data by week
-                const weeklyDataMap: { [week: string]: { calories: number[], protein: number[], weight: number[] } } = {}
+                const weeklyDataMap: { [weekKey: string]: { weekStartDate: string, calories: number[], protein: number[], weight: number[] } } = {}
 
                 trackingData.forEach(tracking => {
                     const trackingDate = new Date(tracking.date)
                     const weekStart = new Date(trackingDate)
                     weekStart.setDate(trackingDate.getDate() - trackingDate.getDay()) // Start of week (Sunday)
-                    const weekKey = `Week ${weekStart.toISOString().split('T')[0]}`
+                    const weekStartDateStr = getLocalDateString(weekStart)
+                    const weekKey = weekStartDateStr
 
                     if (!weeklyDataMap[weekKey]) {
-                        weeklyDataMap[weekKey] = { calories: [], protein: [], weight: [] }
+                        weeklyDataMap[weekKey] = { weekStartDate: weekStartDateStr, calories: [], protein: [], weight: [] }
                     }
 
                     weeklyDataMap[weekKey].calories.push(tracking.caloriesConsumed || 0)
@@ -179,10 +184,9 @@ export const GoalTracker: React.FC = () => {
                     }
                 })
 
-                // Calculate averages for each week
+                // Calculate averages for each week - show all weeks with data
                 const weeklyProgressData: WeeklyProgress[] = Object.keys(weeklyDataMap)
                     .sort()
-                    .slice(-4) // Last 4 weeks
                     .map((weekKey) => {
                         const weekData = weeklyDataMap[weekKey]
                         const avgCalories = weekData.calories.length > 0
@@ -193,39 +197,29 @@ export const GoalTracker: React.FC = () => {
                             : 0
                         const avgWeight = weekData.weight.length > 0
                             ? weekData.weight.reduce((sum, val) => sum + val, 0) / weekData.weight.length
-                            : userProfile.weight
+                            : 0
+
+                        // Format week label with date
+                        const weekStartDate = new Date(weekData.weekStartDate)
+                        const weekLabel = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
                         return {
-                            week: '', // Will be set after padding
+                            week: weekLabel,
                             calories: Math.round(avgCalories),
                             protein: Math.round(avgProtein),
-                            weight: avgWeight
+                            weight: avgWeight,
+                            weekStartDate: weekData.weekStartDate
                         }
                     })
+                    .filter(week => week.weight > 0 || week.calories > 0) // Only show weeks with data
 
-                // If we don't have 4 weeks of data, pad with zeros
-                while (weeklyProgressData.length < 4) {
-                    weeklyProgressData.unshift({
-                        week: '',
-                        calories: 0,
-                        protein: 0,
-                        weight: userProfile.weight || 0
-                    })
-                }
-
-                // Now label all weeks sequentially
-                const finalWeeklyProgress = weeklyProgressData.slice(0, 4).map((data, index) => ({
-                    ...data,
-                    week: `Week ${index + 1}`
-                }))
-
-                setWeeklyProgress(finalWeeklyProgress)
+                setWeeklyProgress(weeklyProgressData)
 
                 // Fetch past 7 days of daily calorie data
                 const sevenDaysAgo = new Date(today)
                 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6) // 6 days ago + today = 7 days
-                const sevenDaysStartDate = sevenDaysAgo.toISOString().split('T')[0]
-                const sevenDaysEndDate = today.toISOString().split('T')[0]
+                const sevenDaysStartDate = getLocalDateString(sevenDaysAgo)
+                const sevenDaysEndDate = getTodayDateString()
 
                 const dailyTrackingData = await getTrackingDataRange(sevenDaysStartDate, sevenDaysEndDate)
 
@@ -240,7 +234,7 @@ export const GoalTracker: React.FC = () => {
                 for (let i = 6; i >= 0; i--) {
                     const date = new Date(today)
                     date.setDate(date.getDate() - i)
-                    const dateStr = date.toISOString().split('T')[0]
+                    const dateStr = getLocalDateString(date)
                     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
 
                     dailyCaloriesData.push({
@@ -259,7 +253,7 @@ export const GoalTracker: React.FC = () => {
         }
 
         fetchGoalData()
-    }, [user, userProfile, todayTrackingData, getTrackingDataRange])
+    }, [user, userProfile, todayTrackingData, getTrackingDataRange, refreshTrigger])
 
     const getGoalIcon = (type: Goal['type']) => {
         switch (type) {
@@ -273,14 +267,8 @@ export const GoalTracker: React.FC = () => {
     }
 
     const getGoalColor = (type: Goal['type']) => {
-        switch (type) {
-            case 'calories': return 'text-red-600 bg-red-100 dark:bg-red-900/20'
-            case 'protein': return 'text-blue-600 bg-blue-100 dark:bg-blue-900/20'
-            case 'carbs': return 'text-green-600 bg-green-100 dark:bg-green-900/20'
-            case 'fat': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20'
-            case 'weight': return 'text-purple-600 bg-purple-100 dark:bg-purple-900/20'
-            case 'workout': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/20'
-        }
+        // Uniform color for all goal icons
+        return 'text-primary-600 bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400'
     }
 
     const getProgressPercentage = (current: number, target: number) => {
@@ -382,7 +370,7 @@ export const GoalTracker: React.FC = () => {
 
         try {
             // Update the user profile to set the goal to 0
-            const profileUpdates: Partial<UserProfile> = {}
+            const profileUpdates: any = {}
 
             switch (goalToDelete.type) {
                 case 'calories':
@@ -456,10 +444,16 @@ export const GoalTracker: React.FC = () => {
                 return
             }
 
-            await updateWeight(weightValue)
+            // Use selected date or today's date
+            const targetDate = selectedWeightDate || getTodayDateString()
+            await updateWeight(weightValue, targetDate)
             setWeightUpdateSuccess(true)
             setNewWeight('')
+            setSelectedWeightDate(null)
             setIsUpdatingWeight(false)
+
+            // Trigger a refresh of goal data
+            setRefreshTrigger(prev => prev + 1)
 
             // Clear success message after 3 seconds
             setTimeout(() => {
@@ -469,6 +463,12 @@ export const GoalTracker: React.FC = () => {
             console.error('Error updating weight:', error)
             setError('Failed to update weight. Please try again.')
         }
+    }
+
+    const startEditingWeight = (weekStartDate?: string) => {
+        setSelectedWeightDate(weekStartDate || null)
+        setIsUpdatingWeight(true)
+        setNewWeight('')
     }
 
     if (isLoading) {
@@ -545,59 +545,58 @@ export const GoalTracker: React.FC = () => {
                         const status = getProgressStatus(goal.current, goal.target, goal.type)
 
                         return (
-                            <div key={goal.id} className="card">
+                            <div key={goal.id} className="card hover:shadow-lg transition-all duration-300">
+                                {/* Header with Title */}
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`p-2 rounded-full ${getGoalColor(goal.type)}`}>
-                                            {getGoalIcon(goal.type)}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900 dark:text-white">
-                                                {getGoalTypeLabel(goal.type)}
-                                            </h3>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                {goal.current.toFixed(1)} / {goal.target} {goal.unit}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+                                        {getGoalTypeLabel(goal.type)}
+                                    </h3>
+                                    <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(status)}`}>
                                         {getStatusIcon(status)}
                                         <span className="capitalize">{status.replace('-', ' ')}</span>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <div>
-                                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                            <span>Progress</span>
-                                            <span>{progress.toFixed(1)}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full transition-all duration-300 ${status === 'excellent' ? 'bg-green-500' :
-                                                    status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
-                                                    }`}
-                                                style={{ width: `${Math.min(progress, 100)}%` }}
-                                            />
+                                {/* Progress Display - Large and Clear */}
+                                <div className="mb-4">
+                                    <div className="mb-2">
+                                        <div>
+                                            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                                                {goal.current.toFixed(goal.type === 'weight' ? 1 : 0)}
+                                            </span>
+                                            <span className="text-lg text-gray-500 dark:text-gray-400 ml-1">
+                                                / {goal.target} {goal.unit}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                                        <span>Started: {goal.startDate.toLocaleDateString()}</span>
-                                        <span>Target: {goal.endDate.toLocaleDateString()}</span>
+                                    {/* Large Progress Bar */}
+                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-500 ${status === 'excellent' ? 'bg-green-500' :
+                                                status === 'good' ? 'bg-yellow-500' : 'bg-red-500'
+                                                }`}
+                                            style={{ width: `${Math.min(progress, 100)}%` }}
+                                        />
                                     </div>
-
-                                    {isEditingGoals && (
-                                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                                            <button
-                                                onClick={() => deleteGoal(goal.id)}
-                                                className="w-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-xs px-3 py-1 rounded-lg transition-colors"
-                                            >
-                                                Remove Goal
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
+
+                                {/* Date Info - Less Prominent */}
+                                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                    <span>Started: {goal.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    <span>Target: {goal.endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+
+                                {isEditingGoals && (
+                                    <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                                        <button
+                                            onClick={() => deleteGoal(goal.id)}
+                                            className="w-full bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 text-sm px-4 py-2 rounded-lg transition-colors font-medium"
+                                        >
+                                            Remove Goal
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )
                     })}
@@ -687,15 +686,16 @@ export const GoalTracker: React.FC = () => {
 
                     {/* Weight Progress */}
                     <div className="card">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                 Weight Progress
                             </h3>
                             <button
-                                onClick={() => setIsUpdatingWeight(!isUpdatingWeight)}
-                                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                                onClick={() => startEditingWeight()}
+                                className="btn-primary flex items-center space-x-2 text-sm"
                             >
-                                {isUpdatingWeight ? 'Cancel' : 'Update Weight'}
+                                <Save className="w-4 h-4" />
+                                <span>{isUpdatingWeight ? 'Cancel' : 'Update Weight'}</span>
                             </button>
                         </div>
 
@@ -711,59 +711,85 @@ export const GoalTracker: React.FC = () => {
 
                         {/* Update Weight Form */}
                         {isUpdatingWeight && (
-                            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <div className="flex-1">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Current Weight (kg)
+                            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={selectedWeightDate || getTodayDateString()}
+                                            onChange={(e) => setSelectedWeightDate(e.target.value)}
+                                            className="input-field"
+                                            max={getTodayDateString()}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Weight (kg)
                                         </label>
                                         <input
                                             type="number"
                                             value={newWeight}
                                             onChange={(e) => setNewWeight(e.target.value)}
                                             className="input-field"
-                                            placeholder="Enter your current weight"
+                                            placeholder="0.0"
                                             min="0"
                                             step="0.1"
                                         />
                                     </div>
-                                    <div className="flex items-end">
-                                        <button
-                                            onClick={handleUpdateWeight}
-                                            disabled={!newWeight}
-                                            className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <Save className="w-4 h-4" />
-                                            <span>Save</span>
-                                        </button>
-                                    </div>
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                    {todayTrackingData?.weight
-                                        ? `Current recorded weight: ${todayTrackingData.weight.toFixed(1)} kg`
-                                        : `Target weight: ${userProfile?.weight.toFixed(1) || 0} kg`
-                                    }
-                                </p>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={handleUpdateWeight}
+                                        disabled={!newWeight}
+                                        className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        <span>Save</span>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsUpdatingWeight(false)
+                                            setSelectedWeightDate(null)
+                                            setNewWeight('')
+                                        }}
+                                        className="btn-secondary"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         )}
 
+                        {/* Chart */}
                         <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={weeklyProgress}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="week" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="weight"
-                                        stroke="#8b5cf6"
-                                        fill="#8b5cf6"
-                                        fillOpacity={0.3}
-                                        name="Weight (kg)"
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            {weeklyProgress.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={weeklyProgress}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="week" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="weight"
+                                            stroke="#8b5cf6"
+                                            fill="#8b5cf6"
+                                            fillOpacity={0.3}
+                                            name="Weight (kg)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                                    <div className="text-center">
+                                        <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        <p>No weight data yet. Click "Update Weight" to add your first entry.</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

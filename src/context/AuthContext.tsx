@@ -15,6 +15,7 @@ import {
     UserPreferences,
     FoodLogEntry
 } from '../services/userTrackingService'
+import { getTodayDateString } from '../utils/dateUtils'
 
 interface UserProfile {
     email: string
@@ -50,7 +51,7 @@ interface AuthContextType {
     logSnack: (calories: number, protein: number, carbs: number, fat: number) => Promise<void>
     logWaterIntake: (liters: number) => Promise<void>
     logExercise: (minutes: number, caloriesBurned: number) => Promise<void>
-    updateWeight: (weight: number) => Promise<void>
+    updateWeight: (weight: number, date?: string) => Promise<void>
     updateMood: (mood: number) => Promise<void>
     updateSleepHours: (hours: number) => Promise<void>
     updateTrackingDefaults: (updates: Partial<UserTrackingDefaults>) => Promise<void>
@@ -390,14 +391,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
 
-    const updateWeight = async (weight: number) => {
+    const updateWeight = async (weight: number, date?: string) => {
         if (!user) return
 
         try {
-            await userTrackingService.updateWeight(user.uid, weight)
-            // Refresh today's data
-            const todayData = await userTrackingService.getTodayTrackingData(user.uid)
-            setTodayTrackingData(todayData)
+            await userTrackingService.updateWeight(user.uid, weight, date)
+            // Refresh today's data if updating for today
+            if (!date || date === getTodayDateString()) {
+                const todayData = await userTrackingService.getTodayTrackingData(user.uid)
+                setTodayTrackingData(todayData)
+            }
         } catch (error) {
             throw error
         }
@@ -502,8 +505,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 date
             )
             // Refresh today's data if logging for today
-            const targetDate = date || new Date().toISOString().split('T')[0]
-            const today = new Date().toISOString().split('T')[0]
+            const targetDate = date || getTodayDateString()
+            const today = getTodayDateString()
             if (targetDate === today) {
                 const todayData = await userTrackingService.getTodayTrackingData(user.uid)
                 setTodayTrackingData(todayData)
