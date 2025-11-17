@@ -84,6 +84,10 @@ export const RecipeSearch: React.FC = () => {
     const [loadingRecipeDetails, setLoadingRecipeDetails] = useState(false)
     const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast')
 
+    // Meal type selection modal states
+    const [showMealTypeModal, setShowMealTypeModal] = useState(false)
+    const [recipeToAdd, setRecipeToAdd] = useState<Recipe | null>(null)
+
     const recipesPerPage = 9
     const [error, setError] = useState<string | null>(null)
     const THEMEALDB_API_KEY = '1' // Free test key from TheMealDB
@@ -733,7 +737,22 @@ export const RecipeSearch: React.FC = () => {
         setSelectedRecipeDetails(null)
     }
 
-    const addRecipeToMealLog = async (recipe: Recipe) => {
+    const openMealTypeModal = (recipe: Recipe) => {
+        if (!user) {
+            alert('Please log in to add recipes to your meal log')
+            return
+        }
+        setRecipeToAdd(recipe)
+        setShowMealTypeModal(true)
+    }
+
+    const closeMealTypeModal = () => {
+        setShowMealTypeModal(false)
+        setRecipeToAdd(null)
+        setSelectedMealType('breakfast')
+    }
+
+    const addRecipeToMealLog = async (recipe: Recipe, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
         if (!user) {
             alert('Please log in to add recipes to your meal log')
             return
@@ -773,11 +792,12 @@ export const RecipeSearch: React.FC = () => {
                 carbsPerServing,
                 fatPerServing,
                 servingSize,
-                selectedMealType,
+                mealType,
                 today
             )
 
             alert('Recipe added to your meal log!' + (apiSource === 'themealdb' && caloriesPerServing === 0 ? ' Remember to edit the nutrition values.' : ''))
+            closeMealTypeModal()
         } catch (error) {
             console.error('Error adding recipe to meal log:', error)
             alert('Failed to add recipe. Please try again.')
@@ -1216,7 +1236,7 @@ export const RecipeSearch: React.FC = () => {
                                                     </button>
                                                     {user ? (
                                                         <button
-                                                            onClick={() => addRecipeToMealLog(recipe)}
+                                                            onClick={() => openMealTypeModal(recipe)}
                                                             className="flex-1 btn-primary flex items-center justify-center space-x-2 py-2.5"
                                                         >
                                                             <BookOpen className="w-4 h-4" />
@@ -1266,6 +1286,60 @@ export const RecipeSearch: React.FC = () => {
                         <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                             Start by typing in the search box above to find recipes that match your taste and nutrition goals.
                         </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Meal Type Selection Modal */}
+            {showMealTypeModal && recipeToAdd && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Select Meal Type</h2>
+                            <button
+                                onClick={closeMealTypeModal}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <p className="text-gray-600 dark:text-gray-400 mb-4">
+                                Choose which meal type to add <span className="font-semibold">{recipeToAdd.title}</span> to:
+                            </p>
+
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => addRecipeToMealLog(recipeToAdd, 'breakfast')}
+                                    className="w-full btn-secondary text-left flex items-center justify-between py-3 px-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600"
+                                >
+                                    <span className="font-medium">Breakfast</span>
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => addRecipeToMealLog(recipeToAdd, 'lunch')}
+                                    className="w-full btn-secondary text-left flex items-center justify-between py-3 px-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600"
+                                >
+                                    <span className="font-medium">Lunch</span>
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => addRecipeToMealLog(recipeToAdd, 'dinner')}
+                                    className="w-full btn-secondary text-left flex items-center justify-between py-3 px-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600"
+                                >
+                                    <span className="font-medium">Dinner</span>
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => addRecipeToMealLog(recipeToAdd, 'snack')}
+                                    className="w-full btn-secondary text-left flex items-center justify-between py-3 px-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600"
+                                >
+                                    <span className="font-medium">Snack</span>
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1437,7 +1511,7 @@ export const RecipeSearch: React.FC = () => {
                                                 onClick={() => {
                                                     const recipe = recipes.find((r) => r.id === selectedRecipeDetails.id)
                                                     if (recipe) {
-                                                        addRecipeToMealLog(recipe)
+                                                        addRecipeToMealLog(recipe, selectedMealType)
                                                         closeRecipePreview()
                                                     }
                                                 }}
