@@ -169,17 +169,20 @@ ${generatedRecipe.tips.map(tip => `- ${tip}`).join('\n')}
 
     // Check if recipe is favorite when it's generated
     useEffect(() => {
+        let isMounted = true
         const checkFavorite = async () => {
             if (generatedRecipe && user) {
                 try {
                     const isFav = await userTrackingService.isRecipeFavorite(user.uid, generatedRecipe.title)
-                    if (isFav) {
+                    // Only update state if component is still mounted and recipe hasn't changed
+                    if (isMounted && isFav) {
                         // Find the favorite ID
                         const favorites = await userTrackingService.getFavoriteRecipes(user.uid)
                         const favorite = favorites.find(f => f.title === generatedRecipe.title)
-                        if (favorite) {
+                        if (favorite && isMounted) {
                             setFavoriteId(favorite.id)
-                            setGeneratedRecipe({ ...generatedRecipe, isFavorite: true })
+                            // Use functional update to avoid stale closure issues
+                            setGeneratedRecipe(prev => prev ? { ...prev, isFavorite: true } : null)
                         }
                     }
                 } catch (error) {
@@ -189,7 +192,12 @@ ${generatedRecipe.tips.map(tip => `- ${tip}`).join('\n')}
             }
         }
         checkFavorite()
-    }, [generatedRecipe, user])
+
+        // Cleanup function to prevent state updates after unmount or recipe change
+        return () => {
+            isMounted = false
+        }
+    }, [generatedRecipe?.id, user])
 
     const toggleFavorite = async () => {
         if (!generatedRecipe || !user) return
