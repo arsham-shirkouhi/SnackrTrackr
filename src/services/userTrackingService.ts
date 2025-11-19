@@ -585,6 +585,7 @@ class UserTrackingService {
                     fatConsumed: updates.fatConsumed ?? existingData.fatConsumed,
                     mealsLogged: updates.mealsLogged ?? existingData.mealsLogged,
                     snacksLogged: updates.snacksLogged ?? existingData.snacksLogged,
+                    weight: updates.weight ?? existingData.weight,
                     updatedAt: now
                 })
             } else {

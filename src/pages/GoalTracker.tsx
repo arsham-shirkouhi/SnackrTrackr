@@ -49,11 +49,18 @@ interface DailyCalories {
     calories: number
 }
 
+interface DailyWeight {
+    date: string
+    displayDate: string
+    weight: number
+}
+
 export const GoalTracker: React.FC = () => {
     const { user, userProfile, todayTrackingData, getTrackingDataRange, updateProfile, updateWeight } = useAuth()
     const [goals, setGoals] = useState<Goal[]>([])
     const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgress[]>([])
     const [dailyCalories, setDailyCalories] = useState<DailyCalories[]>([])
+    const [dailyWeights, setDailyWeights] = useState<DailyWeight[]>([])
     const [isEditingGoals, setIsEditingGoals] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -244,6 +251,48 @@ export const GoalTracker: React.FC = () => {
                 }
 
                 setDailyCalories(dailyCaloriesData)
+
+                // Fetch past 60 days of daily weight data
+                const sixtyDaysAgo = new Date(today)
+                sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 59) // 59 days ago + today = 60 days
+                const sixtyDaysStartDate = getLocalDateString(sixtyDaysAgo)
+                const sixtyDaysEndDate = getTodayDateString()
+
+                const weightTrackingData = await getTrackingDataRange(sixtyDaysStartDate, sixtyDaysEndDate)
+
+                // Create array for daily weights (only days with weight data)
+                const allDailyWeights: DailyWeight[] = []
+                weightTrackingData.forEach(tracking => {
+                    if (tracking.weight && tracking.weight > 0) {
+                        // Parse date string as local date to avoid timezone issues
+                        const [year, month, day] = tracking.date.split('-').map(Number)
+                        const date = new Date(year, month - 1, day)
+                        const displayDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        allDailyWeights.push({
+                            date: tracking.date,
+                            displayDate: displayDate,
+                            weight: tracking.weight
+                        })
+                    }
+                })
+
+                // Sample the data to limit the number of points displayed (max 12 points)
+                const MAX_WEIGHT_POINTS = 12
+                let dailyWeightsData: DailyWeight[] = []
+
+                if (allDailyWeights.length <= MAX_WEIGHT_POINTS) {
+                    // If we have fewer points than max, show all
+                    dailyWeightsData = allDailyWeights
+                } else {
+                    // Sample evenly across the data
+                    const step = (allDailyWeights.length - 1) / (MAX_WEIGHT_POINTS - 1)
+                    for (let i = 0; i < MAX_WEIGHT_POINTS; i++) {
+                        const index = Math.round(i * step)
+                        dailyWeightsData.push(allDailyWeights[index])
+                    }
+                }
+
+                setDailyWeights(dailyWeightsData)
             } catch (error) {
                 console.error('Error fetching goal data:', error)
                 setError('Failed to load goal data. Please try again later.')
@@ -435,7 +484,7 @@ export const GoalTracker: React.FC = () => {
     }
 
     const handleUpdateWeight = async () => {
-        if (!newWeight || !updateWeight) return
+        if (!newWeight || !updateWeight || !selectedWeightDate) return
 
         try {
             const weightValue = parseFloat(newWeight)
@@ -444,9 +493,8 @@ export const GoalTracker: React.FC = () => {
                 return
             }
 
-            // Use selected date or today's date
-            const targetDate = selectedWeightDate || getTodayDateString()
-            await updateWeight(weightValue, targetDate)
+            // Use the selected date (always set when form is open)
+            await updateWeight(weightValue, selectedWeightDate)
             setWeightUpdateSuccess(true)
             setNewWeight('')
             setSelectedWeightDate(null)
@@ -466,7 +514,7 @@ export const GoalTracker: React.FC = () => {
     }
 
     const startEditingWeight = (weekStartDate?: string) => {
-        setSelectedWeightDate(weekStartDate || null)
+        setSelectedWeightDate(weekStartDate || getTodayDateString())
         setIsUpdatingWeight(true)
         setNewWeight('')
     }
@@ -719,7 +767,7 @@ export const GoalTracker: React.FC = () => {
                                         </label>
                                         <input
                                             type="date"
-                                            value={selectedWeightDate || getTodayDateString()}
+                                            value={selectedWeightDate || ''}
                                             onChange={(e) => setSelectedWeightDate(e.target.value)}
                                             className="input-field"
                                             max={getTodayDateString()}
@@ -765,22 +813,56 @@ export const GoalTracker: React.FC = () => {
 
                         {/* Chart */}
                         <div className="h-64">
-                            {weeklyProgress.length > 0 ? (
+                            {dailyWeights.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={weeklyProgress}>
+                                    <LineChart data={dailyWeights}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="week" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Area
+                                        <XAxis
+                                            dataKey="displayDate"
+                                            tick={{ fontSize: 12 }}
+                                            interval="preserveEnd"
+                                        />
+                                        <YAxis
+                                            domain={['dataMin - 2', 'dataMax + 2']}
+                                            tick={{ fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload as DailyWeight
+                                                    // Parse date string as local date to avoid timezone issues
+                                                    const [year, month, day] = data.date.split('-').map(Number)
+                                                    const date = new Date(year, month - 1, day)
+                                                    const fullDate = date.toLocaleDateString('en-US', {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric'
+                                                    })
+                                                    return (
+                                                        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                                                                {fullDate}
+                                                            </p>
+                                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                                Weight: <span className="font-bold text-purple-600 dark:text-purple-400">{data.weight.toFixed(1)} kg</span>
+                                                            </p>
+                                                        </div>
+                                                    )
+                                                }
+                                                return null
+                                            }}
+                                        />
+                                        <Line
                                             type="monotone"
                                             dataKey="weight"
                                             stroke="#8b5cf6"
-                                            fill="#8b5cf6"
-                                            fillOpacity={0.3}
+                                            strokeWidth={2}
+                                            dot={{ fill: '#8b5cf6', r: 4 }}
+                                            activeDot={{ r: 6 }}
                                             name="Weight (kg)"
                                         />
-                                    </AreaChart>
+                                    </LineChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
