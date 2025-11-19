@@ -281,16 +281,20 @@ export const Dashboard: React.FC = () => {
         fetchSelectedDateData()
     }, [user, selectedDate, getFoodLogsByDate])
 
-    // Fetch calories for all days in the current week
+    // Fetch calories for all days in the displayed week
     useEffect(() => {
         const fetchWeekCalories = async () => {
             if (!user) return
 
             try {
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                const startDate = new Date(today)
-                startDate.setDate(today.getDate() - 2)
+                // Parse selected date correctly
+                const [year, month, day] = selectedDate.split('-').map(Number)
+                const selectedDateObj = new Date(year, month - 1, day)
+                selectedDateObj.setHours(0, 0, 0, 0)
+
+                // Start 3 days before selected date (same as getWeekDays)
+                const startDate = new Date(selectedDateObj)
+                startDate.setDate(selectedDateObj.getDate() - 3)
 
                 const caloriesMap: { [date: string]: number } = {}
 
@@ -323,13 +327,14 @@ export const Dashboard: React.FC = () => {
     // Calendar navigation functions
     const getWeekDays = () => {
         const days: { date: Date; dateStr: string; dayName: string; dayNum: number }[] = []
-        // Show 7 days (1 week) starting from today
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
+        // Show 7 days (1 week) centered around the selected date
+        const [year, month, day] = selectedDate.split('-').map(Number)
+        const selectedDateObj = new Date(year, month - 1, day)
+        selectedDateObj.setHours(0, 0, 0, 0)
 
-        // Start 2 days before today to show context
-        const startDate = new Date(today)
-        startDate.setDate(today.getDate() - 2)
+        // Start 3 days before selected date to show context
+        const startDate = new Date(selectedDateObj)
+        startDate.setDate(selectedDateObj.getDate() - 3)
 
         for (let i = 0; i < 7; i++) {
             const currentDate = new Date(startDate)
@@ -348,7 +353,11 @@ export const Dashboard: React.FC = () => {
     }
 
     const navigateWeek = (direction: 'prev' | 'next') => {
-        const currentDate = new Date(selectedDate)
+        // Parse date string correctly to avoid timezone issues
+        const [year, month, day] = selectedDate.split('-').map(Number)
+        const currentDate = new Date(year, month - 1, day)
+        currentDate.setHours(0, 0, 0, 0)
+
         const daysToAdd = direction === 'next' ? 7 : -7
         currentDate.setDate(currentDate.getDate() + daysToAdd)
         setSelectedDate(getLocalDateString(currentDate))
