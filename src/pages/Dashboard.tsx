@@ -783,7 +783,9 @@ export const Dashboard: React.FC = () => {
         }
     }
 
-    const selectedDateObj = new Date(selectedDate)
+    // Parse date string in local timezone to avoid UTC conversion issues
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    const selectedDateObj = new Date(year, month - 1, day) // month is 0-indexed
     const isToday = selectedDate === getTodayDateString()
     const weekDays = getWeekDays()
 
